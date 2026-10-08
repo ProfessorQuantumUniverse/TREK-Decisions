@@ -63,6 +63,19 @@ await f.locator('.topbar .kebab > .iconbtn').click()
 await f.locator('.topbar .menu button').first().click()
 await f.locator('.pollbar').waitFor()
 
+step('link autofill reads dates from the URL')
+await f.locator('.toolbar .trek-btn--primary').click()
+{
+  const urlInput = f.locator('.modal input[type=url]')
+  await urlInput.fill('https://www.booking.com/hotel/es/tablao-cordobes.de.html?checkin=2027-04-12&checkout=2027-04-13')
+  await urlInput.dispatchEvent('change')
+  const date = await f.locator('.modal input[type=date]').inputValue()
+  const t = await f.locator('.modal form input.trek-input').nth(0).inputValue()
+  if (date !== '2027-04-12' || t !== 'Tablao Cordobes') throw new Error(`link autofill: ${date} / ${t}`)
+  await f.locator('.modal .iconbtn[aria-label]').first().click()
+  await f.locator('.modal').waitFor({ state: 'detached' })
+}
+
 step('AI import pre-fills the option form')
 await f.locator('.toolbar .trek-btn--primary').click()
 await f.locator('.modal .aibox .linkbtn').click()
@@ -75,7 +88,7 @@ await f.locator('.modal .iconbtn[aria-label]').first().click() // close without 
 await f.locator('.modal').waitFor({ state: 'detached' })
 
 step('decide')
-await f.locator('.ocard .ofoot .trek-btn', { hasText: /Decide|Entscheiden/ }).first().click()
+await f.locator('.ocard .decidebtn').first().click()
 await f.locator('.modal .opt').first().waitFor()
 // Cost split: drop one member from the split.
 await f.locator('.modal .split button').nth(1).click()

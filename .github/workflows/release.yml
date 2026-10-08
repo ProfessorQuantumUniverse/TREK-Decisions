@@ -1,0 +1,51 @@
+name: Release
+
+# Push a tag like v1.2.3 (matching "version" in trek-plugin.json) to build plugin.zip
+# and publish it as a GitHub release. Install it via TREK → Admin → Plugins → Upload.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Tag matches the manifest version
+        run: |
+          manifest="$(node -p "require('./trek-plugin.json').version")"
+          package="$(node -p "require('./package.json').version")"
+          tag="${GITHUB_REF_NAME#v}"
+          if [ "$manifest" != "$tag" ] || [ "$package" != "$tag" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match trek-plugin.json ($manifest) / package.json ($package) — run 'npm run version:set -- $tag'"
+            exit 1
+          fi
+
+      - run: npm test
+      - run: npx trek-plugin validate
+      - name: Build plugin.zip
+        run: npx trek-plugin pack --json | tee pack.json
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha="$(node -p "require('./pack.json').sha256")"
+          {
+            echo "Install: download **plugin.zip** below, then in TREK open **Admin → Plugins → Upload**, activate the plugin and approve its permissions."
+            echo
+            echo "sha256: \`$sha\`"
+          } > notes.md
+          gh release create "$GITHUB_REF_NAME" plugin.zip \
+            --title "Entscheidungen $GITHUB_REF_NAME" \
+            --notes-file notes.md \
+            --generate-notes

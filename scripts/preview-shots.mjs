@@ -81,7 +81,7 @@ for (const sc of scenarios) {
       await frame.locator('.seg button').nth(1).click()
       await frame.locator('table.cmp').waitFor()
     } else if (kind === 'decide') {
-      await frame.locator('.ocard').nth(Number(n)).locator('.ofoot .trek-btn').last().click()
+      await frame.locator('.ocard').nth(Number(n)).locator('.decidebtn').click()
       await frame.locator('.modal').waitFor()
     } else if (kind === 'ai') {
       await frame.locator('.modal .aibox .linkbtn').click()
