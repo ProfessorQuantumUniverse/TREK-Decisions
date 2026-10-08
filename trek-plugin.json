@@ -1,7 +1,7 @@
 {
   "id": "entscheidungen",
   "name": "Entscheidungen",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "apiVersion": 1,
   "author": "ProfessorQuantumUniverse",
   "description": "Collect options, compare pros and cons, vote as a group and turn the winner into a booking.",
@@ -30,12 +30,171 @@
     "rates:read",
     "hook:map-marker-provider",
     "hook:trip-warning-provider",
-    "hook:trip-card-provider"
+    "hook:trip-card-provider",
+    "ai:invoke",
+    "mcp:tools",
+    "hook:user-data"
   ],
   "capabilities": {
     "tripPage": {
       "position": 1
-    }
+    },
+    "mcpTools": [
+      {
+        "name": "list_decisions",
+        "title": "List group decisions",
+        "description": "The trip's open questions (stay, flight, rental car...) with their options ranked by upvotes, prices, vetoes and pros/cons.",
+        "inputSchema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "tripId"
+          ],
+          "properties": {
+            "tripId": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "TREK trip id (see list_trips)."
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "offen",
+                "entschieden",
+                "verworfen"
+              ],
+              "description": "Only decisions in this status (offen = open, entschieden = decided, verworfen = discarded)."
+            }
+          }
+        },
+        "annotations": {
+          "readOnlyHint": true
+        }
+      },
+      {
+        "name": "create_decision",
+        "title": "Create a group decision",
+        "description": "Create an open question for the group to vote on, e.g. \"Stay in Seville\". Options are added with add_option.",
+        "inputSchema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "tripId",
+            "title",
+            "category"
+          ],
+          "properties": {
+            "tripId": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "TREK trip id (see list_trips)."
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            },
+            "category": {
+              "type": "string",
+              "enum": [
+                "unterkunft",
+                "flug",
+                "zug",
+                "mietwagen",
+                "aktivitaet",
+                "sonstiges"
+              ],
+              "description": "unterkunft = stay, flug = flight, zug = train, mietwagen = rental car, aktivitaet = activity, sonstiges = other."
+            },
+            "description": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "deadline": {
+              "type": "string",
+              "maxLength": 40,
+              "description": "Optional ISO 8601 date-time when voting ends, e.g. 2027-03-01T18:00:00Z."
+            }
+          }
+        },
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": false
+        }
+      },
+      {
+        "name": "add_option",
+        "title": "Add an option to a decision",
+        "description": "Add a candidate (a specific apartment, flight, car offer) to an open decision. Only use facts the user gave you.",
+        "inputSchema": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "tripId",
+            "decisionId",
+            "title"
+          ],
+          "properties": {
+            "tripId": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "TREK trip id (see list_trips)."
+            },
+            "decisionId": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "url": {
+              "type": "string",
+              "maxLength": 2000,
+              "description": "http(s) link to the offer."
+            },
+            "price_total": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Total price for the group."
+            },
+            "currency": {
+              "type": "string",
+              "pattern": "^[A-Za-z]{3}$",
+              "description": "ISO currency code; defaults to the trip currency."
+            },
+            "price_note": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "notes": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "details": {
+              "type": "object",
+              "additionalProperties": true,
+              "description": "Category fields (dates YYYY-MM-DD, times HH:mm). unterkunft: checkin_date, checkin_time, checkout_date, checkout_time, address, beds, cancellation | flug: dep_airport, arr_airport, dep_date, dep_time, arr_date, arr_time, airline, flight_number, stops, baggage | zug: from, to, dep_date, dep_time, arr_date, arr_time, changes | mietwagen: pickup_place, pickup_date, pickup_time, return_place, return_date, return_time, car_class | aktivitaet: date, time, place | sonstiges: date, time, place"
+            },
+            "lat": {
+              "type": "number",
+              "minimum": -90,
+              "maximum": 90
+            },
+            "lng": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            }
+          }
+        },
+        "annotations": {
+          "destructiveHint": false,
+          "idempotentHint": false
+        }
+      }
+    ]
   },
   "requiredAddons": [],
   "pluginDependencies": []

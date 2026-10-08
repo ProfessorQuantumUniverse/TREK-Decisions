@@ -9,6 +9,18 @@ const v = require('./validate')
 const store = require('./store')
 const booking = require('./booking')
 const collab = require('./collab')
+const ai = require('./ai')
+
+// Whether the acting user has an AI provider (TREK's AI Parsing addon). Probing is
+// free, but cache it a few minutes per user so a refresh does not ask every time.
+const aiCache = new Map()
+async function aiAvailable(ctx, userId) {
+  const hit = aiCache.get(userId)
+  if (hit && Date.now() - hit.at < 5 * 60 * 1000) return hit.ok
+  const ok = await ai.available(ctx)
+  aiCache.set(userId, { at: Date.now(), ok })
+  return ok
+}
 const { text: t, lang } = require('./i18n')
 
 const { HttpError } = v
@@ -43,11 +55,12 @@ function body(req) {
 async function buildState(ctx, req, trip) {
   const tripId = trip.id
   const currency = trip.currency || null
-  const [rates, members, settings, polls] = await Promise.all([
+  const [rates, members, settings, polls, aiOk] = await Promise.all([
     store.ratesFor(ctx, currency),
     store.roster(ctx, trip),
     store.getSettings(ctx.db, tripId),
     collab.pollSnapshot(ctx, tripId),
+    aiAvailable(ctx, req.user.id),
   ])
   const decisions = await store.loadDecisions(ctx.db, tripId, { currency, rates })
   for (const d of decisions) {
@@ -55,6 +68,7 @@ async function buildState(ctx, req, trip) {
     delete d.poll_option_ids
   }
   return {
+    ai_available: aiOk,
     collab_available: polls.available,
     rates_available: !!rates,
     me: { id: req.user.id, name: req.user.username },
@@ -282,6 +296,21 @@ const routes = [
     return null
   }),
 
+  // AI import -----------------------------------------------------------------
+  /** Pasted offer text → a draft for the option form. Nothing is stored. */
+  route('POST', '/ai/extract', async ({ ctx, req, tripId, b }) => {
+    const decisionId = v.id(b.decisionId, 'decisionId')
+    const d = await store.getDecision(ctx.db, tripId, decisionId)
+    const text = v.text(b.text, 'text', { max: 20000, required: true, multiline: true })
+    try {
+      return { draft: await ai.extract(ctx, d.category, text) }
+    } catch (e) {
+      const r = booking.classify(e)
+      if (/no AI provider/i.test(r.message)) { r.reason = 'no_ai'; aiCache.delete(req.user.id) }
+      return { draft: null, error: r }
+    }
+  }, { write: false }),
+
   // Collab poll (one way) -----------------------------------------------------
   route('POST', '/poll/post', async ({ ctx, tripId, b }) => {
     const decisionId = v.id(b.decisionId, 'decisionId')
@@ -451,4 +480,4 @@ const routes = [
   }),
 ]
 
-module.exports = { routes, buildState, json, fail, HttpError }
+module.exports = { routes, buildState, json, fail, HttpError, _resetAiCache: () => aiCache.clear() }

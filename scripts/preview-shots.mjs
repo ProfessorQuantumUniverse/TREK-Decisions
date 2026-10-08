@@ -29,6 +29,7 @@ const scenarios = [
   { name: 'compare-dark-en', theme: 'dark', locale: 'en', phone: false, steps: ['open:1', 'compare'] },
   { name: 'decide-light-de', theme: 'light', locale: 'de', phone: false, steps: ['open:0', 'decide:0'] },
   { name: 'option-form-dark-de', theme: 'dark', locale: 'de', phone: false, steps: ['open:1', 'addOption'] },
+  { name: 'ai-form-light-de', theme: 'light', locale: 'de', phone: false, steps: ['open:1', 'addOption', 'ai'] },
   { name: 'phone-list-dark-de', theme: 'dark', locale: 'de', phone: true, steps: [] },
   { name: 'phone-detail-light-de', theme: 'light', locale: 'de', phone: true, steps: ['open:0'] },
   { name: 'phone-detail-dark-en', theme: 'dark', locale: 'en', phone: true, steps: ['open:1'] },
@@ -82,6 +83,11 @@ for (const sc of scenarios) {
     } else if (kind === 'decide') {
       await frame.locator('.ocard').nth(Number(n)).locator('.ofoot .trek-btn').last().click()
       await frame.locator('.modal').waitFor()
+    } else if (kind === 'ai') {
+      await frame.locator('.modal .aibox .linkbtn').click()
+      await frame.locator('.modal .aibody textarea').fill('Patio Andaluz – Wohnung mit Innenhof … 865 € … Check-in ab 16 Uhr')
+      await frame.locator('.modal .aibody .trek-btn').click()
+      await page.waitForTimeout(600)
     } else if (kind === 'addOption') {
       await frame.locator('.toolbar .trek-btn--primary').click()
       await frame.locator('.modal').waitFor()

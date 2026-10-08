@@ -34,6 +34,15 @@ shows a banner when a decision closes within three days, and dashboard trip card
 "open decisions" badge. If the Collab addon is enabled, a decision can be posted as a Collab poll and
 the poll's votes imported back; the plugin's own votes stay authoritative.
 
+If TREK has an AI model set up (the **AI Parsing** addon), the option form offers to read a pasted
+listing, offer or confirmation email and pre-fill the fields; the result is checked like any input and
+nothing is saved until you press save. No pages are fetched or scraped. An assistant connected to TREK's
+MCP server can list the decisions of a trip, create a decision and add options (tools
+`plugin_entscheidungen_list_decisions`, `…_create_decision`, `…_add_option`); TREK does not tell the
+plugin which user runs a tool, so such rows are shown as created by the assistant. When a TREK account
+is deleted, the plugin removes that person's votes and pros/cons and unlinks their name from shared
+decisions and options; an admin data export includes what the plugin stores about a person.
+
 ## Screenshots
 
 The decision view with option cards, votes, pros and cons is shown above. The store image lives at
@@ -58,12 +67,17 @@ with `node scripts/preview-shots.mjs` against a running dev server.
 | `hook:map-marker-provider` | Shows the options of open decisions that have coordinates as markers on the trip map. |
 | `hook:trip-warning-provider` | Shows a planner banner when an open decision closes within three days or its vote has ended. |
 | `hook:trip-card-provider` | Adds an "open decisions" badge to the dashboard trip cards. |
+| `ai:invoke` | Reads a pasted listing/offer with the AI model configured in TREK to pre-fill the option form (output is only a draft). |
+| `mcp:tools` | Publishes three tools (list decisions, create decision, add option) for assistants connected to TREK's MCP server. |
+| `hook:user-data` | Deletes and exports a person's votes, pros/cons and authorship when TREK handles an account deletion or data request. |
 
 ## Setup
 
 Upload `plugin.zip` under **Admin → Plugins** (sideload), activate it and approve the permissions. No
 settings are needed. Requires TREK 4.3 or newer. For bookings and costs, the clicking user needs the
-usual TREK rights on the trip (`reservation_edit`, `place_edit`, `budget_edit`).
+usual TREK rights on the trip (`reservation_edit`, `place_edit`, `budget_edit`). Optional extras use
+TREK's own features: the Collab addon for polls, the Costs addon for costs, and the AI Parsing addon
+with a configured model (Admin → Addons, or per user under Settings → Integrations) for the AI import.
 
 Development: `npm install`, then `npm run dev` (serves http://localhost:4317/preview), `npm run seed`
 for example data from `dev-fixtures.json`, and `npm test` for the unit tests. The bundled airport table

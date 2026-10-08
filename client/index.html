@@ -89,6 +89,11 @@
     .linkbtn { border: 0; background: none; padding: 4px 0; cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--m-muted, var(--text-muted)); display: inline-flex; align-items: center; gap: 5px; }
     .linkbtn:hover { color: var(--m-ink, var(--text-primary)); }
     [data-form-factor="phone"] .linkbtn { padding: 10px 0; font-size: 14px; }
+    .aibox { padding: 10px 12px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 6%, transparent);
+      border: 1px solid color-mix(in srgb, var(--accent) 22%, transparent); display: flex; flex-direction: column; gap: 8px; }
+    .aibox .linkbtn { color: var(--m-ink, var(--text-primary)); }
+    .aibody { display: flex; flex-direction: column; gap: 8px; }
+    .aibody .trek-textarea { width: 100%; box-sizing: border-box; }
     .conv { font-size: 12px; color: var(--m-faint, var(--text-faint)); font-variant-numeric: tabular-nums; }
     .split { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 2px 42px; }
     .split button { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 4px; border-radius: 999px; cursor: pointer; font-size: 12.5px;
@@ -273,7 +278,8 @@
       reopen: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
       done: '<path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/>',
       hourglass: '<path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/>',
-      vote: '<path d="m9 12 2 2 4-4"/><path d="M5 7c0-1.1.9-2 2-2h10a2 2 0 0 1 2 2v12H5V7Z"/><path d="M22 19H2"/>'
+      vote: '<path d="m9 12 2 2 4-4"/><path d="M5 7c0-1.1.9-2 2-2h10a2 2 0 0 1 2 2v12H5V7Z"/><path d="M22 19H2"/>',
+      sparkles: '<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/>'
     };
     function icon(name, extra) {
       var s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -476,7 +482,17 @@
         imported: function (n) { return n === 0 ? 'Keine neuen Stimmen in der Umfrage.' : n === 1 ? '1 Stimme übernommen.' : n + ' Stimmen übernommen.'; },
         splitLabel: 'Aufteilen auf',
         splitHint: function (n, p) { return n ? 'Gleichmäßig auf ' + n + ' Personen · je ' + p : 'Ohne Aufteilung (nur geplant)'; },
-        inTripCur: function (p) { return '≈ ' + p; }
+        inTripCur: function (p) { return '≈ ' + p; },
+        assistant: 'KI-Assistent',
+        deletedUser: 'Gelöschtes Konto',
+        aiOpen: 'Inserat oder Flugdetails einfügen',
+        aiHint: 'Text aus dem Inserat, der Buchungsseite oder einer E-Mail einfügen – das Formular wird vorausgefüllt, du prüfst vor dem Speichern. Seiten werden nicht abgerufen.',
+        aiPh: 'Text hier einfügen…',
+        aiRun: 'Formular ausfüllen',
+        aiBusy: 'KI liest den Text…',
+        aiDone: function (n) { return n ? n + ' Felder ausgefüllt – bitte prüfen.' : 'Nichts Verwertbares gefunden.'; },
+        aiFailed: 'KI-Import fehlgeschlagen: ',
+        aiNoProvider: 'In TREK ist kein KI-Modell eingerichtet.'
       },
       en: {
         intl: 'en-GB',
@@ -661,7 +677,17 @@
         imported: function (n) { return n === 0 ? 'No new votes in the poll.' : n === 1 ? '1 vote imported.' : n + ' votes imported.'; },
         splitLabel: 'Split between',
         splitHint: function (n, p) { return n ? 'Equally between ' + n + ' people · ' + p + ' each' : 'No split (planning only)'; },
-        inTripCur: function (p) { return '≈ ' + p; }
+        inTripCur: function (p) { return '≈ ' + p; },
+        assistant: 'AI assistant',
+        deletedUser: 'Deleted account',
+        aiOpen: 'Paste a listing or flight details',
+        aiHint: 'Paste text from the listing, the booking page or an email — the form is pre-filled and you check it before saving. No pages are fetched.',
+        aiPh: 'Paste text here…',
+        aiRun: 'Fill in the form',
+        aiBusy: 'The AI is reading…',
+        aiDone: function (n) { return n ? n + ' fields filled in — please check.' : 'Nothing usable found.'; },
+        aiFailed: 'AI import failed: ',
+        aiNoProvider: 'No AI model is set up in TREK.'
       }
     };
     var L = STR.de;
@@ -762,7 +788,11 @@
       for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
       return null;
     }
-    function nameOf(id) { var m = member(id); return (m && m.name) || (S.state && S.state.me.id === id ? S.state.me.name : '?'); }
+    function nameOf(id) {
+      if (id === -1) return L.assistant;   // created through an MCP tool
+      if (id === 0) return L.deletedUser;  // erased on account deletion
+      var m = member(id); return (m && m.name) || (S.state && S.state.me.id === id ? S.state.me.name : '?');
+    }
     function initials(name) {
       var parts = String(name || '?').trim().split(/\s+/).filter(Boolean);
       return ((parts[0] || '?')[0] + (parts.length > 1 ? parts[parts.length - 1][0] : '')).toUpperCase();
@@ -770,7 +800,8 @@
     function avatar(id, small) {
       var n = nameOf(id);
       var hue = (Number(id) * 67) % 360;
-      return h('span', { class: 'av' + (small ? ' sm' : ''), title: n, style: 'background:hsl(' + hue + ' 52% 46%)' }, initials(n));
+      var bg = Number(id) > 0 ? 'hsl(' + hue + ' 52% 46%)' : 'var(--text-faint)'; // assistant / deleted account
+      return h('span', { class: 'av' + (small ? ' sm' : ''), title: n, style: 'background:' + bg }, Number(id) === -1 ? icon('sparkles') : initials(n));
     }
     function avatars(ids) {
       if (!ids.length) return null;
@@ -1520,7 +1551,42 @@
           fieldLabel(L.coords, coords, { full: true, hint: L.coordsHint }),
           fieldLabel(L.notes, notes, { full: true }),
           h('div', { class: 'actions full' }, h('button', { type: 'button', class: 'trek-btn trek-btn--secondary', onClick: closeModal }, L.cancel), save));
-        add(box, [modalHead(o ? L.editOption : L.newOption, h('div', { class: 'catlabel cat cat-' + d.category }, icon(d.category), d.title)), curList, form]);
+
+        // AI import: pasted text → draft → the fields above (the user still saves).
+        var aiBox = null;
+        if (S.state.ai_available) {
+          var aiText = h('textarea', { class: 'trek-textarea', rows: 5, maxlength: 20000, placeholder: L.aiPh, 'aria-label': L.aiOpen });
+          var aiMsg = h('div', { class: 'small muted', text: L.aiHint });
+          var aiBtn = h('button', { type: 'button', class: 'trek-btn trek-btn--secondary' }, icon('sparkles'), L.aiRun);
+          var aiBody = h('div', { class: 'aibody hidden' }, aiText, h('div', { class: 'row wrapx' }, aiBtn, aiMsg));
+          var toggle = h('button', { type: 'button', class: 'linkbtn', 'aria-expanded': 'false', onClick: function () {
+            var open = aiBody.classList.toggle('hidden') === false;
+            toggle.setAttribute('aria-expanded', String(open));
+            if (open) aiText.focus();
+          } }, icon('sparkles'), L.aiOpen);
+          aiBtn.addEventListener('click', function () {
+            if (!aiText.value.trim()) { aiText.focus(); return; }
+            busyBtn(aiBtn, true); aiMsg.textContent = L.aiBusy;
+            act('/ai/extract', { decisionId: d.id, text: aiText.value.slice(0, 20000) }).then(function (res) {
+              busyBtn(aiBtn, false);
+              if (!res || !res.draft) {
+                var r = res && res.error;
+                aiMsg.textContent = r && r.reason === 'no_ai' ? L.aiNoProvider : L.aiFailed + ((r && L.reason[r.reason]) || L.reason.error);
+                return;
+              }
+              var dr = res.draft, n = 0;
+              function put(el, v) { if (v === null || v === undefined || v === '') return; el.value = String(v); setErr(el, ''); n++; }
+              put(title, dr.title); put(url, dr.url);
+              if (dr.price_total !== undefined) put(price, String(dr.price_total).replace('.', lang() === 'de' ? ',' : '.'));
+              put(cur, dr.currency); put(note, dr.price_note); put(notes, dr.notes);
+              Object.keys(dr.details || {}).forEach(function (k) { if (detailInputs[k]) put(detailInputs[k].el, dr.details[k]); });
+              aiMsg.textContent = L.aiDone(n);
+              if (n) { aiBody.classList.add('hidden'); toggle.setAttribute('aria-expanded', 'false'); toggle.lastChild.textContent = L.aiDone(n); title.focus(); }
+            }).catch(function () { busyBtn(aiBtn, false); aiMsg.textContent = L.aiHint; });
+          });
+          aiBox = h('div', { class: 'aibox' }, toggle, aiBody);
+        }
+        add(box, [modalHead(o ? L.editOption : L.newOption, h('div', { class: 'catlabel cat cat-' + d.category }, icon(d.category), d.title)), aiBox, curList, form]);
       });
     }
 

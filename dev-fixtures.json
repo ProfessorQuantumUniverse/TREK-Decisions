@@ -33,6 +33,23 @@
     "CHF": 0.94,
     "SEK": 11.4
   },
+  "aiResults": [
+    {
+      "title": "Patio Andaluz – Wohnung mit Innenhof",
+      "url": "https://www.airbnb.de/rooms/1000003",
+      "price_total": 865,
+      "currency": "EUR",
+      "price_note": "inkl. Reinigungsgebühr 60 €",
+      "checkin_date": "2027-04-10",
+      "checkin_time": "16:00",
+      "checkout_date": "2027-04-14",
+      "checkout_time": "10:00",
+      "address": "Calle San Luis 14, Sevilla",
+      "beds": 4,
+      "cancellation": "kostenlos bis 30 Tage vorher",
+      "notes": "Innenhof mit Brunnen, 2 Bäder, Klimaanlage."
+    }
+  ],
   "trips": {
     "1": {
       "members": [

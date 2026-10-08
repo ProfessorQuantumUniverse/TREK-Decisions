@@ -63,6 +63,17 @@ await f.locator('.topbar .kebab > .iconbtn').click()
 await f.locator('.topbar .menu button').first().click()
 await f.locator('.pollbar').waitFor()
 
+step('AI import pre-fills the option form')
+await f.locator('.toolbar .trek-btn--primary').click()
+await f.locator('.modal .aibox .linkbtn').click()
+await f.locator('.modal .aibody textarea').fill('Gemütliche Wohnung mit Innenhof in Sevilla, 4 Gäste, 865 € …')
+await f.locator('.modal .aibody .trek-btn').click()
+await f.locator('.modal form input.trek-input').nth(0).and(f.locator('[aria-invalid="false"]')).waitFor()
+const aiTitle = await f.locator('.modal form input.trek-input').nth(0).inputValue()
+if (!aiTitle) throw new Error('AI draft did not fill the title')
+await f.locator('.modal .iconbtn[aria-label]').first().click() // close without saving
+await f.locator('.modal').waitFor({ state: 'detached' })
+
 step('decide')
 await f.locator('.ocard .ofoot .trek-btn', { hasText: /Decide|Entscheiden/ }).first().click()
 await f.locator('.modal .opt').first().waitFor()
