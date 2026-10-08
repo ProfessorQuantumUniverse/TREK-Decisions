@@ -1,8 +1,8 @@
-# Entscheidungen — group decisions for TREK
+# Entscheidungen - - - group decisions for TREK
 
 A plugin for the self-hosted travel planner [TREK](https://github.com/liketrek/TREK) that covers the
 part of a group trip that happens *before* anything is booked: which apartment, which flight, which
-rental car. The group collects options, weighs pros and cons, votes — and the winner becomes a TREK
+rental car. The group collects options, weighs pros and cons, votes, and the winner becomes a TREK
 booking with one click. The plugin's interface is German and English (it follows your TREK language).
 
 ![The decision view with option cards, votes and pros/cons](./docs/screenshot.png)
@@ -24,14 +24,14 @@ place on the map; flights get their airports as from/to stops), a cost split equ
 members you pick, the other options archived and the group notified. Every write runs with the
 permissions of the person who clicked, so a missing right or a disabled Costs addon is reported
 instead of failing the decision. A passed deadline only marks the vote as ended and highlights the top
-option — nothing is ever booked automatically. A decision can be reopened; the plugin then asks
+option, nothing is ever booked automatically. A decision can be reopened; the plugin then asks
 whether the booking it created should be deleted too. All open sessions update live.
 
 Beyond its own tab the plugin shows up natively in TREK: options of open decisions appear as markers
 on the trip map, the planner shows a banner when a decision closes within three days, and dashboard
 trip cards carry an "open decisions" badge. Prices in a foreign currency are converted into the trip
 currency. Pasting a booking link fills in what the link itself carries (stay dates, the hotel name on
-Booking.com, map coordinates) — the page is never fetched. Optional extras build on TREK's own
+Booking.com, map coordinates), the page is never fetched. Optional extras build on TREK's own
 features: posting a decision as a Collab poll and importing its votes, reading a pasted listing with
 TREK's AI model, and tools for an assistant connected to TREK's MCP server.
 
@@ -47,7 +47,7 @@ generated locally with `npm run shots` while the dev server runs (see *Developme
 1. Download `plugin.zip` from the latest [release](../../releases) of this repository.
 2. In TREK open **Admin → Plugins**, drag the zip onto the upload area (or click *Upload*).
 3. The plugin is installed inactive: **activate** it and **approve** the permissions listed below.
-4. Open any trip — the **Entscheidungen** tab sits right after *Plan*.
+4. Open any trip, the **Entscheidungen** tab sits right after *Plan*.
 
 There are no settings. To update, upload the newer `plugin.zip` the same way; your data stays.
 
@@ -55,7 +55,7 @@ There are no settings. To update, upload the newer `plugin.zip` the same way; yo
 
 1. *Neue Entscheidung* → give it a title and a category (stay, flight, train, rental car, activity,
    other), optionally a deadline.
-2. *Option hinzufügen* for every candidate. Paste the listing link first — dates and coordinates in the
+2. *Option hinzufügen* for every candidate. Paste the listing link first, dates and coordinates in the
    link are filled in for you. With an AI model in TREK, *Inserat oder Flugdetails einfügen* reads a
    pasted listing text.
 3. Vote with 👍 (as many options as you like) or veto, add pros and cons. *Vergleich* shows a table.
@@ -136,4 +136,4 @@ The *CI* action runs the tests on every push and keeps the built zip as a workfl
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE).
