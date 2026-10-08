@@ -1,0 +1,7 @@
+# The registry pins the sha256 of your packed artifact. A CRLF checkout changes those bytes for
+# the same source, so re-packing the same commit on Windows would produce a hash that no longer
+# matches the entry you published. Pin the line endings and the artifact stays reproducible.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.zip binary

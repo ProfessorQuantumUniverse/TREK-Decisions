@@ -1,0 +1,22 @@
+{
+  "name": "entscheidungen",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "dev": "trek-plugin dev",
+    "seed": "node --disable-warning=ExperimentalWarning scripts/seed-dev.mjs",
+    "test": "node --test --disable-warning=ExperimentalWarning \"test/*.test.cjs\"",
+    "validate": "trek-plugin validate",
+    "status": "trek-plugin status",
+    "pack": "trek-plugin pack",
+    "build:airports": "node scripts/build-airports.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0",
+    "trek-plugin-sdk": "^1.7.0",
+    "tz-lookup": "^6.1.25"
+  },
+  "description": "TREK trip-page plugin: collect options, vote and turn the winner into a booking.",
+  "license": "MIT"
+}

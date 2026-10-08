@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "trek-plugin-dev",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["trek-plugin", "dev"],
+      "port": 4317
+    }
+  ]
+}
