@@ -6,6 +6,7 @@
 const { definePlugin } = require('trek-plugin-sdk')
 const { migrate } = require('./lib/schema')
 const { routes } = require('./lib/routes')
+const hooks = require('./lib/hooks')
 
 module.exports = definePlugin({
   async onLoad(ctx) {
@@ -14,4 +15,7 @@ module.exports = definePlugin({
   },
 
   routes,
+
+  // Native TREK surfaces: map markers, planner banner, dashboard badge.
+  hooks,
 })

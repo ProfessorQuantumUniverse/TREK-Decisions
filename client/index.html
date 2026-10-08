@@ -69,11 +69,35 @@
     .topbar { display: flex; align-items: center; gap: 10px; }
     .topbar .tools { display: flex; gap: 6px; flex: none; margin-left: auto; }
     .dtitle { margin-top: 8px; }
-    .ocard .octools { display: flex; gap: 2px; flex: none; margin: -6px -8px 0 0; }
-    .ocard .octools .iconbtn { width: 30px; height: 30px; font-size: 14px; border-color: transparent; background: transparent; color: var(--m-muted, var(--text-muted)); }
-    .ocard .octools .iconbtn:hover { background: var(--bg-hover); color: var(--m-ink, var(--text-primary)); }
-    .ocard .octools .iconbtn.danger:hover { color: var(--danger); }
-    [data-form-factor="phone"] .ocard .octools .iconbtn { width: 40px; height: 40px; }
+    .kebab { position: relative; flex: none; margin: -6px -8px 0 0; }
+    .kebab > .iconbtn { width: 32px; height: 32px; border-color: transparent; background: transparent; color: var(--m-muted, var(--text-muted)); }
+    .kebab > .iconbtn:hover, .kebab > .iconbtn[aria-expanded="true"] { background: var(--bg-hover); color: var(--m-ink, var(--text-primary)); }
+    [data-form-factor="phone"] .kebab > .iconbtn { width: 44px; height: 44px; }
+    .menu { position: absolute; right: 0; top: calc(100% + 4px); z-index: 20; min-width: 180px; padding: 6px; border-radius: 12px;
+      background: var(--m-card, var(--bg-card)); border: 1px solid var(--m-cbr, var(--border-primary)); box-shadow: var(--shadow-lg, 0 12px 32px rgba(0,0,0,.18)); }
+    .menu button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px; border: 0; background: none; border-radius: 8px;
+      cursor: pointer; text-align: left; font-size: 13.5px; color: var(--m-ink, var(--text-primary)); }
+    .menu button:hover { background: var(--bg-hover); }
+    .menu button.danger { color: var(--danger); }
+    [data-form-factor="phone"] .menu button { padding: 12px; font-size: 15px; }
+    .meta-line { margin-top: 8px; font-size: 12.5px; color: var(--m-faint, var(--text-faint)); display: flex; gap: 6px 14px; flex-wrap: wrap; align-items: center; }
+    .meta-line > span { display: inline-flex; align-items: center; gap: 5px; }
+    .pollbar { display: flex; align-items: center; gap: 8px 12px; flex-wrap: wrap; margin-top: 12px; padding: 8px 10px 8px 12px; border-radius: 12px;
+      border: 1px dashed var(--m-cbr, var(--border-primary)); font-size: 13px; color: var(--m-muted, var(--text-secondary)); }
+    .pollbar .ic { color: var(--accent); font-size: 16px; display: inline-flex; }
+    .pcempty { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--m-faint, var(--text-faint)); }
+    .linkbtn { border: 0; background: none; padding: 4px 0; cursor: pointer; font-size: 12.5px; font-weight: 600; color: var(--m-muted, var(--text-muted)); display: inline-flex; align-items: center; gap: 5px; }
+    .linkbtn:hover { color: var(--m-ink, var(--text-primary)); }
+    [data-form-factor="phone"] .linkbtn { padding: 10px 0; font-size: 14px; }
+    .conv { font-size: 12px; color: var(--m-faint, var(--text-faint)); font-variant-numeric: tabular-nums; }
+    .split { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 2px 42px; }
+    .split button { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 4px; border-radius: 999px; cursor: pointer; font-size: 12.5px;
+      border: 1px solid var(--m-gbr, var(--border-primary)); background: transparent; color: var(--m-muted, var(--text-muted)); }
+    .split button .av { margin-left: 0; border: 0; width: 20px; height: 20px; }
+    .split button[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 12%, transparent); border-color: color-mix(in srgb, var(--accent) 45%, transparent); color: var(--m-ink, var(--text-primary)); }
+    .split button[aria-pressed="false"] .av { opacity: .35; }
+    [data-form-factor="phone"] .split { margin-left: 0; }
+    [data-form-factor="phone"] .split button { padding: 6px 12px 6px 6px; font-size: 14px; }
     .desc { margin: 10px 0 0; white-space: pre-wrap; color: var(--m-muted, var(--text-secondary)); max-width: 860px; overflow-wrap: anywhere; }
     .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
     .banner { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 14px; border-radius: 14px; margin-top: 14px; border: 1px solid; }
@@ -243,6 +267,8 @@
       crown: '<path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z"/><path d="M5 21h14"/>',
       pin: '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/>',
       x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+      more: '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
+      download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>',
       users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
       reopen: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
       done: '<path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/>',
@@ -433,7 +459,24 @@
         // Errors
         err: { 400: 'Ungültige Eingabe.', 403: 'Kein Zugriff auf diesen Trip.', 404: 'Nicht gefunden – evtl. schon gelöscht.', 409: 'Das geht gerade nicht (Status hat sich geändert?).', 502: 'Serverfehler im Plugin.', 500: 'Serverfehler im Plugin.', net: 'Keine Verbindung zu TREK.' },
         loadFailed: 'Konnte nicht geladen werden.',
-        retry: 'Erneut versuchen'
+        retry: 'Erneut versuchen',
+        more: 'Weitere Aktionen',
+        addPoints: 'Pro/Contra hinzufügen',
+        noPoints: 'Noch keine Pro/Contra-Punkte.',
+        pointPh: 'Punkt eingeben…',
+        close: 'Schließen',
+        postPoll: 'Als Umfrage im Collab-Tab posten',
+        pollHint: 'Die Stimmen hier bleiben maßgeblich – Umfrage-Stimmen lassen sich übernehmen.',
+        pollInfo: function (n, closed) { return 'Umfrage im Collab-Tab · ' + (n === 1 ? '1 Person hat abgestimmt' : n + ' Personen haben abgestimmt') + (closed ? ' · geschlossen' : ''); },
+        pollGone: 'Die Umfrage wurde im Collab-Tab gelöscht.',
+        importVotes: 'Stimmen übernehmen',
+        openCollab: 'Zum Collab-Tab',
+        pollPosted: 'Umfrage gepostet.',
+        pollFailed: 'Umfrage konnte nicht gepostet werden: ',
+        imported: function (n) { return n === 0 ? 'Keine neuen Stimmen in der Umfrage.' : n === 1 ? '1 Stimme übernommen.' : n + ' Stimmen übernommen.'; },
+        splitLabel: 'Aufteilen auf',
+        splitHint: function (n, p) { return n ? 'Gleichmäßig auf ' + n + ' Personen · je ' + p : 'Ohne Aufteilung (nur geplant)'; },
+        inTripCur: function (p) { return '≈ ' + p; }
       },
       en: {
         intl: 'en-GB',
@@ -601,7 +644,24 @@
         reopenFailed: 'Could not reopen: ',
         err: { 400: 'Invalid input.', 403: 'No access to this trip.', 404: 'Not found — maybe already deleted.', 409: 'Not possible right now (did the status change?).', 502: 'Plugin server error.', 500: 'Plugin server error.', net: 'No connection to TREK.' },
         loadFailed: 'Could not load.',
-        retry: 'Try again'
+        retry: 'Try again',
+        more: 'More actions',
+        addPoints: 'Add pros/cons',
+        noPoints: 'No pros or cons yet.',
+        pointPh: 'Type a point…',
+        close: 'Close',
+        postPoll: 'Post as a Collab poll',
+        pollHint: 'The votes here stay authoritative — poll votes can be imported.',
+        pollInfo: function (n, closed) { return 'Poll in the Collab tab · ' + (n === 1 ? '1 person voted' : n + ' people voted') + (closed ? ' · closed' : ''); },
+        pollGone: 'The poll was deleted in the Collab tab.',
+        importVotes: 'Import votes',
+        openCollab: 'Open Collab',
+        pollPosted: 'Poll posted.',
+        pollFailed: 'Could not post the poll: ',
+        imported: function (n) { return n === 0 ? 'No new votes in the poll.' : n === 1 ? '1 vote imported.' : n + ' votes imported.'; },
+        splitLabel: 'Split between',
+        splitHint: function (n, p) { return n ? 'Equally between ' + n + ' people · ' + p + ' each' : 'No split (planning only)'; },
+        inTripCur: function (p) { return '≈ ' + p; }
       }
     };
     var L = STR.de;
@@ -630,7 +690,7 @@
       ctx: null, state: null, error: null, loading: true,
       view: 'list', decisionId: null, mode: 'cards', hideVetoed: false,
       showArchived: false, showDiscarded: false, notesOpen: {},
-      drafts: {}, busy: {}
+      drafts: {}, busy: {}, menuOpen: null, pcOpen: {}
     };
 
     // -------------------------------------------------------------------------
@@ -748,7 +808,7 @@
       if (!S.ctx || !S.ctx.tripId) return;
       if (inflight) { again = true; return; }
       inflight = true;
-      api('/state').catch(function (e) {
+      api('/state?locale=' + lang()).catch(function (e) {
         if (!S.state) { S.error = errText(e); S.loading = false; render(); }
       }).then(function () {
         inflight = false;
@@ -775,7 +835,18 @@
     function archivedOptions(d) { return d.options.filter(function (o) { return o.archived; }); }
     function optionById(d, id) { for (var i = 0; i < d.options.length; i++) if (d.options[i].id === id) return d.options[i]; return null; }
     function canVote(d, o) { return d.status === 'offen' && !d.voting_closed && !o.archived; }
-    function perPerson(o) { return o.price_total === null || o.price_total === undefined ? null : o.price_total / Math.max(1, S.state.divisor); }
+    function tripCur() { return S.state.trip.currency || null; }
+    function isForeign(o) { return !!(o.currency && tripCur() && o.currency !== tripCur()); }
+    /** The price in the trip currency when it could be converted, else in its own. */
+    function comparable(o) {
+      if (o.price_total === null || o.price_total === undefined) return null;
+      if (isForeign(o) && o.price_trip !== null && o.price_trip !== undefined) return { amount: o.price_trip, cur: tripCur() };
+      return { amount: o.price_total, cur: o.currency || tripCur() };
+    }
+    function perPerson(o) {
+      var c = comparable(o);
+      return c ? { amount: Math.round(c.amount / Math.max(1, S.state.divisor) * 100) / 100, cur: c.cur } : null;
+    }
 
     // -------------------------------------------------------------------------
     // Render
@@ -896,17 +967,31 @@
       var lead = d.leader_option_id ? optionById(d, d.leader_option_id) : null;
       var isOpen = d.status === 'offen';
 
+      var canPoll = S.state.collab_available && isOpen && opts.length >= 2 && !(d.poll && d.poll.exists);
+      var menuItems = [];
+      if (canPoll) menuItems.push(['vote', L.postPoll, function () { postPoll(d); }]);
+      if (d.status !== 'entschieden') menuItems.push([isOpen ? 'archive' : 'restore', isOpen ? L.discard : L.restore, function () { toggleDiscard(d); }]);
+      menuItems.push(['trash', L.del, function () { deleteDecision(d); }, true]);
       var tools = h('div', { class: 'tools' },
         h('button', { class: 'iconbtn', title: L.edit, 'aria-label': L.edit, onClick: function () { openDecisionForm(d); } }, icon('pencil')),
-        d.status !== 'entschieden' ? h('button', { class: 'iconbtn', title: isOpen ? L.discard : L.restore, 'aria-label': isOpen ? L.discard : L.restore, onClick: function () { toggleDiscard(d); } }, icon(isOpen ? 'archive' : 'restore')) : null,
-        h('button', { class: 'iconbtn danger', title: L.del, 'aria-label': L.del, onClick: function () { deleteDecision(d); } }, icon('trash')));
+        kebab('decision:' + d.id, menuItems));
 
-      var chips = [h('span', { class: 'trek-chip ' + (d.status === 'entschieden' ? 'trek-chip--success' : d.status === 'verworfen' ? '' : 'trek-chip--accent') }, L.status[d.status])];
+      var meta = [];
       if (d.deadline && isOpen) {
         var c = countdown(d.deadline);
-        chips.push(h('span', { class: 'trek-chip ' + (c.soon ? 'trek-chip--warning' : 'trek-chip--info'), title: fmtWhen(d.deadline) }, icon(c.ended ? 'hourglass' : 'clock'), c.text + (c.ended ? '' : ' · ' + fmtWhen(d.deadline))));
+        meta.push(h('span', { class: 'trek-chip ' + (c.soon ? 'trek-chip--warning' : 'trek-chip--info'), title: fmtWhen(d.deadline) }, icon(c.ended ? 'hourglass' : 'clock'), c.text + (c.ended ? '' : ' · ' + fmtWhen(d.deadline))));
       }
-      chips.push(h('span', { class: 'trek-chip' }, icon('users'), L.createdBy(nameOf(d.created_by))));
+      meta.push(h('span', null, icon('users'), L.createdBy(nameOf(d.created_by))));
+
+      var pollBar = null;
+      if (S.state.collab_available && d.linked_poll_id && d.poll && isOpen) {
+        pollBar = d.poll.exists
+          ? h('div', { class: 'pollbar' }, h('span', { class: 'ic' }, icon('vote')), h('span', { class: 'grow', text: L.pollInfo(d.poll.voters, d.poll.closed), title: L.pollHint }),
+              h('button', { class: 'trek-btn trek-btn--secondary btn-sm', disabled: d.voting_closed, onClick: function () { importPoll(d); } }, icon('download'), L.importVotes),
+              h('button', { class: 'trek-btn trek-btn--ghost btn-sm', onClick: function () { trek.navigate('/trips/' + tripId() + '?tab=collab'); } }, L.openCollab))
+          : h('div', { class: 'pollbar' }, h('span', { class: 'ic' }, icon('vote')), h('span', { class: 'grow', text: L.pollGone }),
+              opts.length >= 2 ? h('button', { class: 'trek-btn trek-btn--secondary btn-sm', onClick: function () { postPoll(d); } }, L.postPoll) : null);
+      }
 
       var banners = [];
       if (d.status === 'entschieden' && winner) {
@@ -965,8 +1050,8 @@
           tools),
         h('h1', { class: 'dtitle', text: d.title }),
         d.description ? h('p', { class: 'desc', text: d.description }) : null,
-        h('div', { class: 'chips' }, chips),
-        banners, toolbar, body, archSec);
+        h('div', { class: 'meta-line' }, meta),
+        pollBar, banners, toolbar, body, archSec);
     }
 
     var divisorTimer = null;
@@ -1043,10 +1128,12 @@
       else if (isLead) tags.push(h('span', { class: 'trek-chip trek-chip--accent' }, icon('crown'), L.suggestion));
       if (vetoed) tags.push(h('span', { class: 'trek-chip trek-chip--danger' }, icon('veto'), L.vetoed));
 
+      var conv = isForeign(o) && o.price_trip !== null && o.price_trip !== undefined ? money(o.price_trip, tripCur()) : null;
       var price = o.price_total !== null && o.price_total !== undefined
         ? h('div', { class: 'price' },
             h('span', { class: 'big', text: money(o.price_total, o.currency) }),
-            pp !== null ? h('span', { class: 'pp', text: '≈ ' + money(Math.round(pp * 100) / 100, o.currency) + ' ' + L.perPerson + ' (÷' + S.state.divisor + ')' }) : null,
+            conv ? h('span', { class: 'conv', text: L.inTripCur(conv) }) : null,
+            pp ? h('span', { class: 'pp', title: L.divisorHint + ': ' + S.state.divisor, text: money(pp.amount, pp.cur) + ' ' + L.perPerson }) : null,
             o.price_note ? h('span', { class: 'note', text: o.price_note }) : null)
         : (o.price_note ? h('div', { class: 'price' }, h('span', { class: 'note', style: 'margin:0', text: o.price_note })) : null);
 
@@ -1069,20 +1156,38 @@
           })) : h('div', { class: 'none', text: L.none }));
       }
       var dk = 'pc:' + o.id;
+      var canPoint = d.status !== 'verworfen';
       function submitPoint(kind) {
         var text = (S.drafts[dk] || '').trim();
         if (!text) return;
         S.drafts[dk] = '';
         act('/proscons/create', { optionId: o.id, kind: kind, text: text.slice(0, 280) }).catch(function () { S.drafts[dk] = text; render(); });
       }
-      var pcAdd = h('div', { class: 'pcadd' },
-        h('input', {
-          class: 'trek-input', 'data-fk': dk, maxlength: 280, placeholder: L.addPoint, value: S.drafts[dk] || '', 'aria-label': L.addPoint,
-          onInput: function (e) { S.drafts[dk] = e.target.value; },
-          onKeydown: function (e) { if (e.key === 'Enter') { e.preventDefault(); submitPoint(e.shiftKey ? 'con' : 'pro'); } }
-        }),
-        h('button', { class: 'trek-btn trek-btn--secondary', title: L.pros, onClick: function () { submitPoint('pro'); } }, '+ ' + L.pros),
-        h('button', { class: 'trek-btn trek-btn--secondary', title: L.cons, onClick: function () { submitPoint('con'); } }, '− ' + L.cons));
+      function openPoints() {
+        S.pcOpen[o.id] = true; render();
+        var el = document.querySelector('[data-fk="' + dk + '"]'); if (el) el.focus();
+      }
+      // The input only appears on demand, so a card stays calm until someone has a point.
+      var pcAdd = !canPoint ? null : S.pcOpen[o.id]
+        ? h('div', { class: 'pcadd' },
+            h('input', {
+              class: 'trek-input', 'data-fk': dk, maxlength: 280, placeholder: L.pointPh, value: S.drafts[dk] || '', 'aria-label': L.addPoints,
+              onInput: function (e) { S.drafts[dk] = e.target.value; },
+              onKeydown: function (e) {
+                if (e.key === 'Enter') { e.preventDefault(); submitPoint(e.shiftKey ? 'con' : 'pro'); }
+                if (e.key === 'Escape') { S.pcOpen[o.id] = false; render(); }
+              }
+            }),
+            h('button', { class: 'trek-btn trek-btn--secondary', title: L.pros, onClick: function () { submitPoint('pro'); } }, '+ ' + L.pros),
+            h('button', { class: 'trek-btn trek-btn--secondary', title: L.cons, onClick: function () { submitPoint('con'); } }, '− ' + L.cons),
+            h('button', { class: 'iconbtn', style: 'width:30px;height:30px;border-color:transparent;background:none', title: L.close, 'aria-label': L.close, onClick: function () { S.pcOpen[o.id] = false; render(); } }, icon('x')))
+        : null;
+      var hasPoints = o.pros.length || o.cons.length;
+      var pcBlock = hasPoints
+        ? [h('div', { class: 'pc' }, pcList('pro', o.pros), pcList('con', o.cons)),
+           pcAdd || (canPoint ? h('div', null, h('button', { class: 'linkbtn', onClick: openPoints }, icon('plus'), L.addPoints)) : null)]
+        : [pcAdd || h('div', { class: 'pcempty' }, h('span', { text: L.noPoints }),
+            canPoint ? h('button', { class: 'linkbtn', onClick: openPoints }, icon('plus'), L.addPoints) : null)];
 
       var upOn = o.up.indexOf(me) >= 0, vetoOn = o.veto.indexOf(me) >= 0;
       var votes = h('div', { class: 'votes' },
@@ -1092,10 +1197,11 @@
         h('button', { class: 'vote veto' + (vetoOn ? ' on' : ''), 'aria-pressed': String(vetoOn), disabled: !voteOk, title: voteOk ? L.vetoBtn : L.voteClosedHint, onClick: function () { vote(o, 'veto', !vetoOn); } }, icon('veto'), h('span', { text: L.vetoBtn }), o.veto.length ? h('span', { class: 'num', text: String(o.veto.length) }) : null),
         avatars(o.veto));
 
-      var tools = h('div', { class: 'octools' },
-        d.status !== 'verworfen' ? h('button', { class: 'iconbtn', title: L.edit, 'aria-label': L.edit, onClick: function () { openOptionForm(d, o); } }, icon('pencil')) : null,
-        d.status === 'offen' ? h('button', { class: 'iconbtn', title: L.archive, 'aria-label': L.archive, onClick: function () { act('/options/archive', { optionId: o.id, archived: true }).catch(function () {}); } }, icon('archive')) : null,
-        !isWinner ? h('button', { class: 'iconbtn danger', title: L.del, 'aria-label': L.del, onClick: function () { deleteOption(o); } }, icon('trash')) : null);
+      var items = [];
+      if (d.status !== 'verworfen') items.push(['pencil', L.edit, function () { openOptionForm(d, o); }]);
+      if (d.status === 'offen') items.push(['archive', L.archive, function () { act('/options/archive', { optionId: o.id, archived: true }).catch(function () {}); }]);
+      if (!isWinner) items.push(['trash', L.del, function () { deleteOption(o); }, true]);
+      var tools = kebab('opt:' + o.id, items);
 
       var foot = h('div', { class: 'ofoot' },
         o.url ? h('button', { class: 'trek-btn trek-btn--secondary btn-sm', title: o.url, onClick: function () { trek.openExternal(o.url); } }, icon('link'), L.openLink) : null,
@@ -1109,11 +1215,26 @@
           h('div', { class: 'grow' }, h('h3', { text: o.title }), tags.length ? h('div', { class: 'tags' }, tags) : null),
           tools),
         price, fields, notes,
-        h('div', { class: 'pc' }, pcList('pro', o.pros), pcList('con', o.cons)),
-        d.status !== 'verworfen' ? pcAdd : null,
+        pcBlock,
         votes, foot);
     }
     function opts2(d) { return activeOptions(d).length; }
+
+    /** A "⋯" button with a small action menu; `items` = [icon, label, onClick, danger?]. */
+    function kebab(key, items) {
+      if (!items.length) return null;
+      var open = S.menuOpen === key;
+      return h('div', { class: 'kebab', 'data-menu': key },
+        h('button', { class: 'iconbtn', title: L.more, 'aria-label': L.more, 'aria-haspopup': 'menu', 'aria-expanded': String(open),
+          onClick: function (e) { e.stopPropagation(); S.menuOpen = open ? null : key; render(); } }, icon('more')),
+        open ? h('div', { class: 'menu trek-menu-enter', role: 'menu' }, items.map(function (it) {
+          return h('button', { role: 'menuitem', class: it[3] ? 'danger' : '', onClick: function () { S.menuOpen = null; render(); it[2](); } }, icon(it[0]), it[1]);
+        })) : null);
+    }
+    document.addEventListener('mousedown', function (e) {
+      if (S.menuOpen && !(e.target.closest && e.target.closest('[data-menu="' + S.menuOpen + '"]'))) { S.menuOpen = null; render(); }
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && S.menuOpen) { S.menuOpen = null; render(); } });
 
     function vote(o, value, active) {
       var me = S.state.me.id;
@@ -1129,16 +1250,22 @@
     function renderTable(d, opts) {
       var list = S.hideVetoed ? opts.filter(function (o) { return !o.veto.length; }) : opts;
       if (!list.length) return h('div', { class: 'trek-card empty' }, h('p', { text: L.none }));
-      var sameCur = list.every(function (o) { return !o.currency || o.currency === list[0].currency; });
-      // "Best" values are judged among the options nobody vetoed.
+      // "Best" values are judged among the options nobody vetoed, on comparable prices
+      // (converted into the trip currency where needed) — only if all share one currency.
       var clean = list.filter(function (o) { return !o.veto.length; });
-      var prices = clean.map(function (o) { return o.price_total; }).filter(function (p) { return p !== null && p !== undefined; });
-      var minP = sameCur && prices.length > 1 ? Math.min.apply(null, prices) : null;
+      var comps = clean.map(comparable).filter(Boolean);
+      var oneCur = comps.every(function (c) { return c.cur === (comps[0] && comps[0].cur); });
+      var minP = oneCur && comps.length > 1 ? Math.min.apply(null, comps.map(function (c) { return c.amount; })) : null;
+      function isMin(o) { var c = comparable(o); return minP !== null && !!c && c.amount === minP; }
       var maxUp = clean.length ? Math.max.apply(null, clean.map(function (o) { return o.up.length; })) : 0;
       function cell(o, content, best) { return h('td', { class: (best && !o.veto.length ? 'best ' : '') + (o.veto.length ? 'vetoed' : '') }, content); }
       var rowsData = [
-        [L.priceTotal, function (o) { return cell(o, o.price_total !== null ? h('span', { class: 'num', text: money(o.price_total, o.currency) }) : L.none, minP !== null && o.price_total === minP); }],
-        [L.perPerson + ' (÷' + S.state.divisor + ')', function (o) { var p = perPerson(o); return cell(o, p !== null ? h('span', { class: 'num', text: money(Math.round(p * 100) / 100, o.currency) }) : L.none, minP !== null && o.price_total === minP); }],
+        [L.priceTotal, function (o) {
+          if (o.price_total === null || o.price_total === undefined) return cell(o, L.none);
+          var conv = isForeign(o) && o.price_trip !== null && o.price_trip !== undefined ? money(o.price_trip, tripCur()) : null;
+          return cell(o, h('div', null, h('span', { class: 'num', text: money(o.price_total, o.currency) }), conv ? h('div', { class: 'conv', text: L.inTripCur(conv) }) : null), isMin(o));
+        }],
+        [L.perPerson + ' (÷' + S.state.divisor + ')', function (o) { var p = perPerson(o); return cell(o, p ? h('span', { class: 'num', text: money(p.amount, p.cur) }) : L.none, isMin(o)); }],
         [L.votes, function (o) { return cell(o, h('span', { class: 'row' }, h('strong', { class: 'num', text: String(o.up.length) }), avatars(o.up)), maxUp > 0 && o.up.length === maxUp); }],
         [L.vetos, function (o) { return cell(o, o.veto.length ? h('span', { class: 'row' }, h('strong', { class: 'num', style: 'color:var(--danger)', text: String(o.veto.length) }), avatars(o.veto)) : '0'); }]
       ];
@@ -1171,6 +1298,19 @@
     // -------------------------------------------------------------------------
     // Actions
     // -------------------------------------------------------------------------
+    function postPoll(d) {
+      act('/poll/post', { decisionId: d.id }).then(function (res) {
+        var p = res && res.poll;
+        if (p && p.ok === false) trek.notify('error', L.pollFailed + (L.reason[p.reason] || L.reason.error));
+        else trek.notify('success', L.pollPosted);
+      }).catch(function () {});
+    }
+    function importPoll(d) {
+      act('/poll/import', { decisionId: d.id }).then(function (res) {
+        var n = res && res.imported ? res.imported.added : 0;
+        trek.notify(n ? 'success' : 'info', L.imported(n));
+      }).catch(function () {});
+    }
     function toggleDiscard(d) {
       if (d.status === 'offen') {
         confirmDlg({ title: L.cDiscard, message: L.cDiscardMsg, confirmLabel: L.discard, cancelLabel: L.cancel, danger: false }).then(function (ok) {
@@ -1427,12 +1567,32 @@
         }
         var costDesc = costText();
         cbBooking.addEventListener('change', function () { var el = box.querySelector('[data-cost-desc]'); if (el) el.textContent = costText(); });
+        // Who shares the cost — everyone by default, toggled per member.
+        var split = {};
+        S.state.members.forEach(function (m) { split[m.id] = true; });
+        var splitBox = h('div', { class: 'split' });
+        var splitHint = h('div', { class: 'small muted', style: 'margin:0 0 4px 42px' });
+        function drawSplit() {
+          var ids = S.state.members.filter(function (m) { return split[m.id]; });
+          splitBox.replaceChildren.apply(splitBox, S.state.members.map(function (m) {
+            return h('button', { type: 'button', 'aria-pressed': String(!!split[m.id]), onClick: function () { split[m.id] = !split[m.id]; drawSplit(); } },
+              avatar(m.id), m.name || '?');
+          }));
+          var c = comparable(o);
+          splitHint.textContent = L.splitHint(ids.length, c && ids.length ? money(Math.round(c.amount / ids.length * 100) / 100, c.cur) : '');
+          var show = cbCost.checked && !cbCost.disabled;
+          splitBox.classList.toggle('hidden', !show);
+          splitHint.classList.toggle('hidden', !show);
+        }
+        cbCost.addEventListener('change', drawSplit);
+        drawSplit();
         var go = h('button', { class: 'trek-btn trek-btn--primary' }, icon('check'), gapsOnly ? L.save : L.decide);
         go.addEventListener('click', function () {
           busyBtn(go, true);
           act('/decide', {
             decisionId: d.id, optionId: o.id, locale: lang(),
             booking: cbBooking.checked && !cbBooking.disabled, cost: cbCost.checked && !cbCost.disabled,
+            splitMemberIds: S.state.members.filter(function (m) { return split[m.id]; }).map(function (m) { return m.id; }),
             archiveOthers: cbArchive.checked && !cbArchive.disabled, notify: cbNotify.checked && !cbNotify.disabled
           }).then(function (res) { closeModal(); showResults(res && res.results); }).catch(function () { busyBtn(go, false); });
         });
@@ -1440,11 +1600,12 @@
         add(box, [
           modalHead(gapsOnly ? L.gapsTitle : L.decideTitle(o.title), h('div', { class: 'catlabel cat cat-' + d.category }, icon(d.category), d.title)),
           h('div', { class: 'summary' }, catIcon(d.category), h('div', { class: 'grow' }, h('strong', { text: o.title }),
-            o.price_total !== null ? h('div', { class: 'muted small num', text: money(o.price_total, o.currency) + (pp !== null ? ' · ≈ ' + money(Math.round(pp * 100) / 100, o.currency) + ' ' + L.perPerson : '') }) : null),
+            o.price_total !== null ? h('div', { class: 'muted small num', text: money(o.price_total, o.currency) + (isForeign(o) && o.price_trip !== null ? ' (' + L.inTripCur(money(o.price_trip, tripCur())) + ')' : '') + (pp ? ' · ' + money(pp.amount, pp.cur) + ' ' + L.perPerson : '') }) : null),
             h('span', { class: 'row small muted' }, icon('up'), String(o.up.length))),
           h('div', { class: 'opts' },
             choice(cbBooking, L.mkBooking, bookingDone ? L.alreadyBooked : bookingHint(d, o), bookingDone),
             choice(cbCost, L.mkCost, costDesc, cbCost.disabled, 'data-cost-desc'),
+            splitBox, splitHint,
             gapsOnly ? null : choice(cbArchive, L.archiveOthers(others), null, others === 0),
             gapsOnly ? null : choice(cbNotify, L.notifyGroup, L.notifyHint, false)),
           h('div', { class: 'small faint', text: L.rightsHint }),

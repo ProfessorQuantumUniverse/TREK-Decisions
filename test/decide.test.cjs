@@ -44,7 +44,7 @@ test('stay: place + hotel booking with accommodation block on the trip days + li
   assert.equal(r.day_id, 100)
   assert.equal(r.end_day_id, 103)
   assert.deepEqual(r.create_accommodation, { start_day_id: 100, end_day_id: 103, check_in: '15:00', check_out: '11:00', place_id: trip.places[0].id })
-  assert.match(r.notes, /Preis: 840,00/)
+  assert.match(r.notes, /Preis: 840\s€/)
   assert.match(r.notes, /Schlafplätze: 4/)
 
   const cost = trip.costs[0]

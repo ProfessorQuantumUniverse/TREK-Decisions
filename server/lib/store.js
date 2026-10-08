@@ -79,8 +79,12 @@ function rankOptions(options, convert = (o) => o.price_total) {
   return active
 }
 
-/** Every decision of a trip with its options, pros/cons and votes, ranked. */
-async function loadDecisions(db, tripId, { convert } = {}) {
+/**
+ * Every decision of a trip with its options, pros/cons and votes, ranked.
+ * With `currency` + `rates` (relative to it) each option also carries `price_trip`,
+ * its total in the trip currency — used for the display and the price tie-break.
+ */
+async function loadDecisions(db, tripId, { currency = null, rates = null } = {}) {
   const decisions = await db.query('SELECT * FROM decisions WHERE trip_id = ? ORDER BY created_at DESC, id DESC', tripId)
   const options = await db.query(
     'SELECT o.* FROM options o JOIN decisions d ON d.id = o.decision_id WHERE d.trip_id = ? ORDER BY o.id',
@@ -113,6 +117,7 @@ async function loadDecisions(db, tripId, { convert } = {}) {
       created_by: o.created_by,
       created_at: o.created_at,
       archived: o.archived,
+      price_trip: currency ? convert(o.price_total, o.currency || currency, currency, rates) : o.price_total,
       pros: [],
       cons: [],
       up: [],
@@ -131,7 +136,7 @@ async function loadDecisions(db, tripId, { convert } = {}) {
   const at = Date.now()
   return decisions.map((d) => {
     const opts = [...byOption.values()].filter((o) => o.decision_id === d.id)
-    const ranked = rankOptions(opts, convert)
+    const ranked = rankOptions(opts, (o) => (o.price_trip !== null ? o.price_trip : o.price_total))
     const archived = opts.filter((o) => o.archived)
     const leader = ranked.find((o) => o.veto.length === 0) || null
     return {
@@ -146,18 +151,47 @@ async function loadDecisions(db, tripId, { convert } = {}) {
 
 async function getSettings(db, tripId) {
   const rows = await db.query('SELECT * FROM trip_settings WHERE trip_id = ?', tripId)
-  return rows[0] || { trip_id: tripId, divisor: null, costs_unavailable: 0 }
+  return rows[0] || { trip_id: tripId, divisor: null, costs_unavailable: 0, locale: null }
 }
 
 async function upsertSettings(db, tripId, fields) {
   const cur = await getSettings(db, tripId)
   const next = { ...cur, ...fields }
   await db.exec(
-    `INSERT INTO trip_settings (trip_id, divisor, costs_unavailable) VALUES (?, ?, ?)
-     ON CONFLICT (trip_id) DO UPDATE SET divisor = excluded.divisor, costs_unavailable = excluded.costs_unavailable`,
-    tripId, next.divisor, next.costs_unavailable ? 1 : 0,
+    `INSERT INTO trip_settings (trip_id, divisor, costs_unavailable, locale) VALUES (?, ?, ?, ?)
+     ON CONFLICT (trip_id) DO UPDATE SET divisor = excluded.divisor, costs_unavailable = excluded.costs_unavailable,
+                                         locale = excluded.locale`,
+    tripId, next.divisor ?? null, next.costs_unavailable ? 1 : 0, next.locale ?? null,
   )
   return next
+}
+
+// Exchange rates are cached upstream; a short in-process cache saves a ctx call per refresh.
+const rateCache = new Map()
+const RATE_TTL = 30 * 60 * 1000
+
+/** quote → units of `quote` per 1 `base`, or null when the host has none. */
+async function ratesFor(ctx, base) {
+  if (!base || !/^[A-Z]{3}$/.test(base)) return null
+  const hit = rateCache.get(base)
+  if (hit && Date.now() - hit.at < RATE_TTL) return hit.rates
+  let rates = null
+  try {
+    rates = await ctx.rates.get(base)
+  } catch (e) {
+    rates = null
+  }
+  if (rates && typeof rates === 'object') rateCache.set(base, { at: Date.now(), rates })
+  return rates && typeof rates === 'object' ? rates : null
+}
+
+/** Amount in `from` converted into `to`, given rates relative to `to`. Null if unknown. */
+function convert(amount, from, to, rates) {
+  if (amount === null || amount === undefined) return null
+  if (!from || from === to) return amount
+  const r = rates && Number(rates[from])
+  if (!r || !Number.isFinite(r) || r <= 0) return null
+  return Math.round((amount / r) * 100) / 100
 }
 
 /** Trip roster: the invited members plus the owner (who is not in trip_members). */
@@ -195,5 +229,6 @@ function displayName(u) {
 
 module.exports = {
   now, requireTrip, getDecision, getOption, votingClosed, parseDetails, rankOptions, loadDecisions,
-  getSettings, upsertSettings, roster, displayName,
+  getSettings, upsertSettings, roster, displayName, ratesFor, convert,
+  _resetRateCache: () => rateCache.clear(),
 }

@@ -8,6 +8,7 @@
 const v = require('./validate')
 const store = require('./store')
 const booking = require('./booking')
+const collab = require('./collab')
 const { text: t, lang } = require('./i18n')
 
 const { HttpError } = v
@@ -41,12 +42,21 @@ function body(req) {
 /** Full view state for the trip page. */
 async function buildState(ctx, req, trip) {
   const tripId = trip.id
-  const [decisions, members, settings] = await Promise.all([
-    store.loadDecisions(ctx.db, tripId),
+  const currency = trip.currency || null
+  const [rates, members, settings, polls] = await Promise.all([
+    store.ratesFor(ctx, currency),
     store.roster(ctx, trip),
     store.getSettings(ctx.db, tripId),
+    collab.pollSnapshot(ctx, tripId),
   ])
+  const decisions = await store.loadDecisions(ctx.db, tripId, { currency, rates })
+  for (const d of decisions) {
+    d.poll = d.linked_poll_id ? collab.pollInfo(polls.polls.get(Number(d.linked_poll_id))) : null
+    delete d.poll_option_ids
+  }
   return {
+    collab_available: polls.available,
+    rates_available: !!rates,
     me: { id: req.user.id, name: req.user.username },
     trip: {
       id: tripId,
@@ -97,7 +107,16 @@ function requireOpen(decision) {
 // ---------------------------------------------------------------------------
 
 const routes = [
-  route('GET', '/state', async () => null, { write: false }),
+  /** `locale` (optional) remembers the trip's language for host-rendered texts. */
+  route('GET', '/state', async ({ ctx, req, tripId }) => {
+    const raw = (req.query || {}).locale
+    if (raw !== undefined) {
+      const locale = lang(raw)
+      const cur = await store.getSettings(ctx.db, tripId)
+      if (cur.locale !== locale) await store.upsertSettings(ctx.db, tripId, { locale })
+    }
+    return null
+  }, { write: false }),
 
   // Decisions -----------------------------------------------------------------
   route('POST', '/decisions/create', async ({ ctx, req, tripId, b }) => {
@@ -263,6 +282,34 @@ const routes = [
     return null
   }),
 
+  // Collab poll (one way) -----------------------------------------------------
+  route('POST', '/poll/post', async ({ ctx, tripId, b }) => {
+    const decisionId = v.id(b.decisionId, 'decisionId')
+    const d = await store.getDecision(ctx.db, tripId, decisionId)
+    requireOpen(d)
+    const options = await ctx.db.query('SELECT id, title, archived FROM options WHERE decision_id = ? ORDER BY id', decisionId)
+    // Rank order reads better in the poll than creation order.
+    const ranked = (await store.loadDecisions(ctx.db, tripId)).find((x) => x.id === decisionId)
+    const order = new Map(ranked.options.map((o, i) => [o.id, i]))
+    options.sort((a, c) => order.get(a.id) - order.get(c.id))
+    try {
+      return { poll: await collab.postPoll(ctx, tripId, d, options) }
+    } catch (e) {
+      if (e instanceof HttpError) throw e
+      return { poll: booking.classify(e) }
+    }
+  }),
+
+  route('POST', '/poll/import', async ({ ctx, trip, tripId, b }) => {
+    const decisionId = v.id(b.decisionId, 'decisionId')
+    const d = await store.getDecision(ctx.db, tripId, decisionId)
+    requireOpen(d)
+    if (store.votingClosed(d)) throw new HttpError(409, 'voting_closed', 'voting has ended')
+    if (!d.linked_poll_id) throw new HttpError(409, 'no_poll', 'no poll posted for this decision')
+    const members = await store.roster(ctx, trip)
+    return { imported: await collab.importVotes(ctx, tripId, d, members.map((m) => m.id)) }
+  }),
+
   // Decide / reopen -----------------------------------------------------------
   route('POST', '/decide', async ({ ctx, req, trip, tripId, b }) => {
     const decisionId = v.id(b.decisionId, 'decisionId')
@@ -296,7 +343,15 @@ const routes = [
         results.cost = { ok: false, reason: 'no_price' }
       } else {
         try {
-          results.cost = await booking.createCost(ctx, trip, decision, option, reservationId)
+          // Equal split across the chosen members (default: everyone on the trip).
+          const roster = (await store.roster(ctx, trip)).map((m) => m.id)
+          let split = roster
+          if (b.splitMemberIds !== undefined && b.splitMemberIds !== null) {
+            if (!Array.isArray(b.splitMemberIds) || b.splitMemberIds.length > 200) throw v.bad('splitMemberIds', 'must be a list')
+            const want = new Set(b.splitMemberIds.map((x) => v.id(x, 'splitMemberIds')))
+            split = roster.filter((id) => want.has(id))
+          }
+          results.cost = await booking.createCost(ctx, trip, decision, option, reservationId, split)
           costId = results.cost.id || null
         } catch (e) {
           results.cost = booking.classify(e)

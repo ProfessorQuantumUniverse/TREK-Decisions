@@ -1,7 +1,7 @@
 {
   "id": "entscheidungen",
   "name": "Entscheidungen",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "apiVersion": 1,
   "author": "ProfessorQuantumUniverse",
   "description": "Collect options, compare pros and cons, vote as a group and turn the winner into a booking.",
@@ -10,7 +10,12 @@
   "nativeModules": false,
   "icon": "Scale",
   "license": "MIT",
-  "tags": ["planning", "voting", "group", "bookings"],
+  "tags": [
+    "planning",
+    "voting",
+    "group",
+    "bookings"
+  ],
   "permissions": [
     "db:own",
     "db:read:trips",
@@ -19,10 +24,18 @@
     "db:write:reservations",
     "db:write:places",
     "db:write:costs",
-    "notify:send"
+    "notify:send",
+    "db:read:collab",
+    "db:write:collab",
+    "rates:read",
+    "hook:map-marker-provider",
+    "hook:trip-warning-provider",
+    "hook:trip-card-provider"
   ],
   "capabilities": {
-    "tripPage": { "position": 1 }
+    "tripPage": {
+      "position": 1
+    }
   },
   "requiredAddons": [],
   "pluginDependencies": []

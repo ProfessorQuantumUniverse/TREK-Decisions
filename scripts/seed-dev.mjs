@@ -21,7 +21,9 @@ if (!seed) throw new Error('dev-fixtures.json has no "seed" block')
 const file = path.join(root, '.trek-dev', 'db.sqlite')
 fs.mkdirSync(path.dirname(file), { recursive: true })
 const db = new DatabaseSync(file)
-for (const [, sql] of MIGRATIONS) db.exec(sql)
+for (const [, sql] of MIGRATIONS) {
+  try { db.exec(sql) } catch (e) { if (!/duplicate column name/i.test(e.message)) throw e }
+}
 
 const tripId = seed.tripId
 const now = Date.now()

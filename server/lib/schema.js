@@ -75,10 +75,28 @@ const MIGRATIONS = [
       costs_unavailable INTEGER NOT NULL DEFAULT 0
     );
   `],
+  // Phase 2: which plugin option sits at which index of the posted collab poll, and
+  // the language last used on the trip (for host-rendered marker/warning/badge text,
+  // which reaches the plugin without a locale).
+  // One ALTER per migration: SQLite has no ADD COLUMN IF NOT EXISTS, so each step must
+  // be re-runnable on its own (see migrate()).
+  ['002_poll_option_ids', 'ALTER TABLE decisions ADD COLUMN poll_option_ids TEXT'],
+  ['003_trip_locale', 'ALTER TABLE trip_settings ADD COLUMN locale TEXT'],
 ]
 
+/**
+ * The host records a migration id once it succeeded, but `trek-plugin dev` only keeps
+ * them in memory, so after a restart an ADD COLUMN would run again. A column that is
+ * already there means the step is done.
+ */
 async function migrate(db) {
-  for (const [id, sql] of MIGRATIONS) await db.migrate(id, sql)
+  for (const [id, sql] of MIGRATIONS) {
+    try {
+      await db.migrate(id, sql)
+    } catch (e) {
+      if (!/duplicate column name/i.test(String(e && e.message))) throw e
+    }
+  }
 }
 
 module.exports = { MIGRATIONS, migrate }

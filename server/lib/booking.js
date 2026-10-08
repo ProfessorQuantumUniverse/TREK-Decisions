@@ -60,7 +60,8 @@ function formatPrice(amount, currency, locale) {
   if (amount === null || amount === undefined) return null
   try {
     return new Intl.NumberFormat(locale === 'de' ? 'de-DE' : 'en-GB', {
-      style: 'currency', currency: currency || 'EUR', maximumFractionDigits: 2,
+      style: 'currency', currency: currency || 'EUR',
+      minimumFractionDigits: Math.round(amount) === amount ? 0 : 2, maximumFractionDigits: 2,
     }).format(amount)
   } catch {
     return `${amount} ${currency || ''}`.trim()
@@ -225,7 +226,7 @@ async function createBooking(ctx, trip, decision, option, locale) {
   }
 }
 
-async function createCost(ctx, trip, decision, option, reservationId) {
+async function createCost(ctx, trip, decision, option, reservationId, splitMemberIds = []) {
   const type = RESERVATION_TYPE[decision.category] || 'other'
   const input = {
     name: cap(option.title, 200),
@@ -235,9 +236,11 @@ async function createCost(ctx, trip, decision, option, reservationId) {
   }
   if (option.price_note) input.note = cap(option.price_note, 500)
   if (reservationId) input.reservation_id = reservationId
+  // Equal split (TREK's member_ids); without it the cost is planning-only.
+  if (splitMemberIds.length) input.member_ids = splitMemberIds
   if (!input.currency) delete input.currency
   const item = await ctx.costs.create(trip.id, input)
-  return { ok: true, id: item && item.id }
+  return { ok: true, id: item && item.id, split: splitMemberIds.length }
 }
 
 module.exports = {

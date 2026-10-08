@@ -26,6 +26,14 @@ automatically. A decision can be reopened; the plugin then asks whether the crea
 deleted too. All open sessions update live. The UI follows the TREK theme (light/dark), works on phone
 and desktop and is available in German and English.
 
+The cost is split equally between the trip members (the decide dialog lets you pick who shares it).
+Prices in a foreign currency are converted into the trip currency with TREK's exchange rates and shown
+next to the original. Beyond its own tab the plugin shows up natively in TREK: the options of open
+decisions appear as markers on the trip map (handy for comparing where the apartments are), the planner
+shows a banner when a decision closes within three days, and dashboard trip cards carry an
+"open decisions" badge. If the Collab addon is enabled, a decision can be posted as a Collab poll and
+the poll's votes imported back; the plugin's own votes stay authoritative.
+
 ## Screenshots
 
 The decision view with option cards, votes, pros and cons is shown above. The store image lives at
@@ -44,6 +52,12 @@ with `node scripts/preview-shots.mjs` against a running dev server.
 | `db:write:places` | Creates a place from the address/coordinates of a chosen stay so the accommodation shows on the map. |
 | `db:write:costs` | Adds the chosen option's price as a cost linked to the booking (needs the Costs addon). |
 | `notify:send` | Notifies the trip members that a decision has been made. |
+| `db:read:collab` | Detects whether the Collab addon is available and reads the votes of a poll the plugin posted. |
+| `db:write:collab` | Posts a decision's options as a Collab poll (only on request). |
+| `rates:read` | Converts prices in a foreign currency into the trip currency. |
+| `hook:map-marker-provider` | Shows the options of open decisions that have coordinates as markers on the trip map. |
+| `hook:trip-warning-provider` | Shows a planner banner when an open decision closes within three days or its vote has ended. |
+| `hook:trip-card-provider` | Adds an "open decisions" badge to the dashboard trip cards. |
 
 ## Setup
 

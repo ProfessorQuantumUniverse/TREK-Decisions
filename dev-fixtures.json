@@ -1,30 +1,92 @@
 {
   "actingUserId": 1,
   "users": {
-    "1": { "id": 1, "username": "lorenzo", "display_name": "Lorenzo" },
-    "2": { "id": 2, "username": "mia", "display_name": "Mia Krüger" },
-    "3": { "id": 3, "username": "jonas", "display_name": "Jonas" },
-    "4": { "id": 4, "username": "sara", "display_name": "Sara Öztürk" },
-    "9": { "id": 9, "username": "fremd", "display_name": "Fremde Person" }
+    "1": {
+      "id": 1,
+      "username": "lorenzo",
+      "display_name": "Lorenzo"
+    },
+    "2": {
+      "id": 2,
+      "username": "mia",
+      "display_name": "Mia Krüger"
+    },
+    "3": {
+      "id": 3,
+      "username": "jonas",
+      "display_name": "Jonas"
+    },
+    "4": {
+      "id": 4,
+      "username": "sara",
+      "display_name": "Sara Öztürk"
+    },
+    "9": {
+      "id": 9,
+      "username": "fremd",
+      "display_name": "Fremde Person"
+    }
+  },
+  "ratesResult": {
+    "USD": 1.09,
+    "GBP": 0.85,
+    "CHF": 0.94,
+    "SEK": 11.4
   },
   "trips": {
     "1": {
-      "members": [1, 2, 3, 4],
+      "members": [
+        1,
+        2,
+        3,
+        4
+      ],
       "data": {
-        "id": 1, "user_id": 1, "title": "Andalusien 2027", "currency": "EUR",
-        "start_date": "2027-04-10", "end_date": "2027-04-14"
+        "id": 1,
+        "user_id": 1,
+        "title": "Andalusien 2027",
+        "currency": "EUR",
+        "start_date": "2027-04-10",
+        "end_date": "2027-04-14"
       },
       "days": [
-        { "id": 101, "trip_id": 1, "date": "2027-04-10" },
-        { "id": 102, "trip_id": 1, "date": "2027-04-11" },
-        { "id": 103, "trip_id": 1, "date": "2027-04-12" },
-        { "id": 104, "trip_id": 1, "date": "2027-04-13" },
-        { "id": 105, "trip_id": 1, "date": "2027-04-14" }
+        {
+          "id": 101,
+          "trip_id": 1,
+          "date": "2027-04-10"
+        },
+        {
+          "id": 102,
+          "trip_id": 1,
+          "date": "2027-04-11"
+        },
+        {
+          "id": 103,
+          "trip_id": 1,
+          "date": "2027-04-12"
+        },
+        {
+          "id": 104,
+          "trip_id": 1,
+          "date": "2027-04-13"
+        },
+        {
+          "id": 105,
+          "trip_id": 1,
+          "date": "2027-04-14"
+        }
       ]
     },
     "2": {
-      "members": [9],
-      "data": { "id": 2, "user_id": 9, "title": "Fremder Trip", "currency": "USD" }
+      "members": [
+        9
+      ],
+      "data": {
+        "id": 2,
+        "user_id": 9,
+        "title": "Fremder Trip",
+        "currency": "USD"
+      }
     }
   },
   "seed": {
@@ -40,43 +102,144 @@
           {
             "title": "Casa Azul – Altstadt-Apartment",
             "url": "https://www.airbnb.de/rooms/1000001",
-            "price_total": 920, "currency": "EUR", "price_note": "inkl. Reinigung",
-            "lat": 37.4005, "lng": -5.9915, "created_by": 2,
-            "details": { "checkin_date": "2027-04-10", "checkin_time": "15:00", "checkout_date": "2027-04-14", "checkout_time": "11:00",
-                         "address": "Calle Feria 32, Sevilla", "beds": 4, "cancellation": "kostenlos bis 14 Tage vorher" },
+            "price_total": 920,
+            "currency": "EUR",
+            "price_note": "inkl. Reinigung",
+            "lat": 37.4005,
+            "lng": -5.9915,
+            "created_by": 2,
+            "details": {
+              "checkin_date": "2027-04-10",
+              "checkin_time": "15:00",
+              "checkout_date": "2027-04-14",
+              "checkout_time": "11:00",
+              "address": "Calle Feria 32, Sevilla",
+              "beds": 4,
+              "cancellation": "kostenlos bis 14 Tage vorher"
+            },
             "notes": "Zwei Schlafzimmer, Sofa ist ausziehbar.",
-            "pros": [[2, "Dachterrasse mit Blick auf die Giralda"], [1, "Mitten in der Altstadt"]],
-            "cons": [[3, "4. Stock ohne Aufzug"]],
-            "up": [1, 2, 4], "veto": []
+            "pros": [
+              [
+                2,
+                "Dachterrasse mit Blick auf die Giralda"
+              ],
+              [
+                1,
+                "Mitten in der Altstadt"
+              ]
+            ],
+            "cons": [
+              [
+                3,
+                "4. Stock ohne Aufzug"
+              ]
+            ],
+            "up": [
+              1,
+              2,
+              4
+            ],
+            "veto": []
           },
           {
             "title": "Hotel Triana Loft",
             "url": "https://www.booking.com/hotel/es/triana-loft.html",
-            "price_total": 1040, "currency": "EUR", "price_note": "2 Doppelzimmer, Frühstück",
-            "lat": 37.3846, "lng": -6.0019, "created_by": 3,
-            "details": { "checkin_date": "2027-04-10", "checkin_time": "14:00", "checkout_date": "2027-04-14", "checkout_time": "12:00",
-                         "address": "Calle Pureza 50, Sevilla", "beds": 4, "cancellation": "nicht erstattbar" },
-            "pros": [[3, "Frühstück inklusive"], [4, "Ruhiges Viertel"]],
-            "cons": [[1, "Nicht stornierbar"]],
-            "up": [2, 3], "veto": []
+            "price_total": 1040,
+            "currency": "EUR",
+            "price_note": "2 Doppelzimmer, Frühstück",
+            "lat": 37.3846,
+            "lng": -6.0019,
+            "created_by": 3,
+            "details": {
+              "checkin_date": "2027-04-10",
+              "checkin_time": "14:00",
+              "checkout_date": "2027-04-14",
+              "checkout_time": "12:00",
+              "address": "Calle Pureza 50, Sevilla",
+              "beds": 4,
+              "cancellation": "nicht erstattbar"
+            },
+            "pros": [
+              [
+                3,
+                "Frühstück inklusive"
+              ],
+              [
+                4,
+                "Ruhiges Viertel"
+              ]
+            ],
+            "cons": [
+              [
+                1,
+                "Nicht stornierbar"
+              ]
+            ],
+            "up": [
+              2,
+              3
+            ],
+            "veto": []
           },
           {
             "title": "Finca El Olivar",
             "url": "https://www.airbnb.de/rooms/1000002",
-            "price_total": 780, "currency": "EUR",
-            "lat": 37.4719, "lng": -5.6416, "created_by": 4,
-            "details": { "checkin_date": "2027-04-10", "checkout_date": "2027-04-14", "address": "Carmona, Sevilla", "beds": 6 },
-            "pros": [[4, "Pool"], [3, "Am günstigsten"]],
-            "cons": [[2, "30 Minuten Fahrt in die Stadt"]],
-            "up": [3], "veto": [2]
+            "price_total": 780,
+            "currency": "EUR",
+            "lat": 37.4719,
+            "lng": -5.6416,
+            "created_by": 4,
+            "details": {
+              "checkin_date": "2027-04-10",
+              "checkout_date": "2027-04-14",
+              "address": "Carmona, Sevilla",
+              "beds": 6
+            },
+            "pros": [
+              [
+                4,
+                "Pool"
+              ],
+              [
+                3,
+                "Am günstigsten"
+              ]
+            ],
+            "cons": [
+              [
+                2,
+                "30 Minuten Fahrt in die Stadt"
+              ]
+            ],
+            "up": [
+              3
+            ],
+            "veto": [
+              2
+            ]
           },
           {
             "title": "Hostel Oasis (2 Privatzimmer)",
-            "price_total": 610, "currency": "EUR",
-            "lat": 37.3924, "lng": -5.9947, "created_by": 1,
-            "details": { "checkin_date": "2027-04-10", "checkout_date": "2027-04-14", "address": "Calle Compañía 1, Sevilla", "beds": 4 },
-            "pros": [], "cons": [[4, "Gemeinschaftsbad"]],
-            "up": [], "veto": []
+            "price_total": 610,
+            "currency": "EUR",
+            "lat": 37.3924,
+            "lng": -5.9947,
+            "created_by": 1,
+            "details": {
+              "checkin_date": "2027-04-10",
+              "checkout_date": "2027-04-14",
+              "address": "Calle Compañía 1, Sevilla",
+              "beds": 4
+            },
+            "pros": [],
+            "cons": [
+              [
+                4,
+                "Gemeinschaftsbad"
+              ]
+            ],
+            "up": [],
+            "veto": []
           }
         ]
       },
@@ -88,27 +251,137 @@
         "created_by": 2,
         "options": [
           {
-            "title": "Condor direkt", "price_total": 760, "currency": "EUR", "price_note": "nur Handgepäck", "created_by": 2,
+            "title": "Condor direkt",
+            "price_total": 760,
+            "currency": "EUR",
+            "price_note": "nur Handgepäck",
+            "created_by": 2,
             "url": "https://www.condor.com/",
-            "details": { "dep_airport": "FRA", "arr_airport": "SVQ", "dep_date": "2027-04-10", "dep_time": "09:15", "arr_time": "12:05",
-                         "airline": "Condor", "flight_number": "DE 1542", "stops": 0, "baggage": "nur Handgepäck" },
-            "pros": [[1, "Direkt, früh in Sevilla"]], "cons": [[4, "Koffer kostet extra"]],
-            "up": [1, 2, 3], "veto": []
+            "details": {
+              "dep_airport": "FRA",
+              "arr_airport": "SVQ",
+              "dep_date": "2027-04-10",
+              "dep_time": "09:15",
+              "arr_time": "12:05",
+              "airline": "Condor",
+              "flight_number": "DE 1542",
+              "stops": 0,
+              "baggage": "nur Handgepäck"
+            },
+            "pros": [
+              [
+                1,
+                "Direkt, früh in Sevilla"
+              ]
+            ],
+            "cons": [
+              [
+                4,
+                "Koffer kostet extra"
+              ]
+            ],
+            "up": [
+              1,
+              2,
+              3
+            ],
+            "veto": []
           },
           {
-            "title": "Iberia via Madrid", "price_total": 1120, "currency": "EUR", "created_by": 4,
+            "title": "Iberia via Madrid",
+            "price_total": 1120,
+            "currency": "EUR",
+            "created_by": 4,
             "url": "https://www.iberia.com/",
-            "details": { "dep_airport": "FRA", "arr_airport": "SVQ", "dep_date": "2027-04-10", "dep_time": "06:50", "arr_time": "12:20",
-                         "airline": "Iberia", "flight_number": "IB 3121", "stops": 1, "baggage": "1 × 23 kg" },
-            "pros": [[4, "Koffer inklusive"]], "cons": [[2, "Sehr früh los"]],
-            "up": [4], "veto": []
+            "details": {
+              "dep_airport": "FRA",
+              "arr_airport": "SVQ",
+              "dep_date": "2027-04-10",
+              "dep_time": "06:50",
+              "arr_time": "12:20",
+              "airline": "Iberia",
+              "flight_number": "IB 3121",
+              "stops": 1,
+              "baggage": "1 × 23 kg"
+            },
+            "pros": [
+              [
+                4,
+                "Koffer inklusive"
+              ]
+            ],
+            "cons": [
+              [
+                2,
+                "Sehr früh los"
+              ]
+            ],
+            "up": [
+              4
+            ],
+            "veto": []
           },
           {
-            "title": "Vueling via Barcelona", "price_total": 690, "currency": "EUR", "created_by": 3,
-            "details": { "dep_airport": "FRA", "arr_airport": "SVQ", "dep_date": "2027-04-10", "dep_time": "10:30", "arr_time": "16:45",
-                         "airline": "Vueling", "flight_number": "VY 1813", "stops": 1, "baggage": "nur Handgepäck" },
-            "pros": [[3, "Am günstigsten"]], "cons": [[1, "Über 6 Stunden Reisezeit"]],
-            "up": [3], "veto": [1]
+            "title": "Vueling via Barcelona",
+            "price_total": 690,
+            "currency": "EUR",
+            "created_by": 3,
+            "details": {
+              "dep_airport": "FRA",
+              "arr_airport": "SVQ",
+              "dep_date": "2027-04-10",
+              "dep_time": "10:30",
+              "arr_time": "16:45",
+              "airline": "Vueling",
+              "flight_number": "VY 1813",
+              "stops": 1,
+              "baggage": "nur Handgepäck"
+            },
+            "pros": [
+              [
+                3,
+                "Am günstigsten"
+              ]
+            ],
+            "cons": [
+              [
+                1,
+                "Über 6 Stunden Reisezeit"
+              ]
+            ],
+            "up": [
+              3
+            ],
+            "veto": [
+              1
+            ]
+          },
+          {
+            "title": "TAP via Lissabon",
+            "price_total": 880,
+            "currency": "USD",
+            "price_note": "Preis vom US-Portal",
+            "created_by": 4,
+            "details": {
+              "dep_airport": "FRA",
+              "arr_airport": "SVQ",
+              "dep_date": "2027-04-10",
+              "dep_time": "11:20",
+              "arr_time": "17:05",
+              "airline": "TAP",
+              "flight_number": "TP 575",
+              "stops": 1,
+              "baggage": "1 × 23 kg"
+            },
+            "pros": [
+              [
+                4,
+                "Koffer inklusive"
+              ]
+            ],
+            "cons": [],
+            "up": [],
+            "veto": []
           }
         ]
       }

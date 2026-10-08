@@ -42,13 +42,33 @@ if (!(await f.locator('.ocard .price .big').first().textContent()).match(/96[.,]
 step('vote + pro')
 await f.locator('.ocard .vote.up').first().click()
 await f.locator('.ocard .vote.up.on').first().waitFor()
+await f.locator('.ocard .linkbtn').first().click() // the input opens on demand
 await f.locator('.ocard .pcadd input').first().fill('Beste Show der Stadt')
 await f.locator('.ocard .pcadd input').first().press('Enter')
 await f.locator('.ocard .pro li', { hasText: 'Beste Show der Stadt' }).waitFor()
 
+step('card menu: edit option')
+await f.locator('.ocard .kebab > .iconbtn').first().click()
+await f.locator('.ocard .menu button').first().click()
+await f.locator('.modal').waitFor()
+await f.locator('.modal .iconbtn[aria-label]').first().click() // close
+await f.locator('.modal').waitFor({ state: 'detached' })
+
+step('post as collab poll')
+await f.locator('.toolbar .trek-btn--primary').click()
+await f.locator('.modal form input.trek-input').nth(0).fill('Tablao El Arenal')
+await f.locator('.modal button[type=submit]').click()
+await f.locator('.ocard h3', { hasText: 'Tablao El Arenal' }).waitFor()
+await f.locator('.topbar .kebab > .iconbtn').click()
+await f.locator('.topbar .menu button').first().click()
+await f.locator('.pollbar').waitFor()
+
 step('decide')
 await f.locator('.ocard .ofoot .trek-btn', { hasText: /Decide|Entscheiden/ }).first().click()
 await f.locator('.modal .opt').first().waitFor()
+// Cost split: drop one member from the split.
+await f.locator('.modal .split button').nth(1).click()
+if ((await f.locator('.modal .split button[aria-pressed="false"]').count()) !== 1) throw new Error('split toggle failed')
 await f.locator('.modal .actions .trek-btn--primary').click()
 await f.locator('.banner.ok').waitFor()
 const banner = await f.locator('.banner.ok').textContent()
