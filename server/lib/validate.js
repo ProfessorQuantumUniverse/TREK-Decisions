@@ -12,6 +12,15 @@ class HttpError extends Error {
 
 const bad = (field, why) => new HttpError(400, 'invalid_input', `${field}: ${why}`)
 
+// Upper bounds on how much one trip can hold. They keep the own database, the state
+// payload and the rendered page bounded however the routes are driven (a script, an
+// assistant in a loop). Hitting one is a 409 "limit_reached".
+const LIMITS = {
+  decisionsPerTrip: 200,
+  optionsPerDecision: 50,
+  pointsPerOption: 100,
+}
+
 const CATEGORIES = ['unterkunft', 'flug', 'zug', 'mietwagen', 'aktivitaet', 'sonstiges']
 const STATUSES = ['offen', 'entschieden', 'verworfen']
 
@@ -55,8 +64,12 @@ function text(v, field, { max, required = false, multiline = false } = {}) {
     return null
   }
   if (typeof v !== 'string') throw bad(field, 'must be a string')
-  // Control characters out (newlines kept for multi-line fields).
-  let s = v.replace(multiline ? /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g : /[\u0000-\u001F\u007F]/g, '')
+  // Control characters out (newlines kept for multi-line fields), and the bidi
+  // embedding/override/isolate controls, which can make a title read as something
+  // other than what was stored.
+  let s = v
+    .replace(multiline ? /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g : /[\u0000-\u001F\u007F\u2028\u2029]/g, '')
+    .replace(/[\u202A-\u202E\u2066-\u2069]/g, '')
   s = s.trim()
   if (!s) {
     if (required) throw bad(field, 'is required')
@@ -81,6 +94,8 @@ function httpUrl(v, field) {
   let u
   try { u = new URL(s) } catch { throw bad(field, 'must be a valid http(s) URL') }
   if (u.protocol !== 'http:' && u.protocol !== 'https:') throw bad(field, 'must be an http(s) URL')
+  // https://booking.com@evil.example/ puts a trusted name in front of another host.
+  if (u.username || u.password) throw bad(field, 'must not contain credentials')
   return u.href
 }
 
@@ -112,11 +127,20 @@ function time(v, field) {
   return v
 }
 
-/** A deadline is an absolute instant; it is stored as an ISO-8601 UTC string. */
+const ISO_INSTANT = /^(\d{4}-\d{2}-\d{2})(?:[T ](\d{2}:\d{2}(?::\d{2}(?:\.\d{1,9})?)?)(Z|[+-]\d{2}:?\d{2})?)?$/i
+
+/**
+ * A deadline is an absolute instant; it is stored as an ISO-8601 UTC string. Only ISO
+ * 8601 is accepted (Date.parse alone also takes "March 1 2027" and reads it in the
+ * server's time zone). A date, or a date-time without an offset, is read as UTC so the
+ * result never depends on the host's TZ. The trip page always sends a full UTC instant.
+ */
 function deadline(v, field) {
   if (v === undefined || v === null || v === '') return null
   if (typeof v !== 'string' || v.length > 40) throw bad(field, 'must be an ISO date-time')
-  const t = Date.parse(v)
+  const m = ISO_INSTANT.exec(v.trim())
+  if (!m) throw bad(field, 'must be an ISO date-time')
+  const t = Date.parse(m[2] ? `${m[1]}T${m[2]}${m[3] ? m[3].toUpperCase() : 'Z'}` : `${m[1]}T00:00:00Z`)
   if (Number.isNaN(t)) throw bad(field, 'must be an ISO date-time')
   const year = new Date(t).getUTCFullYear()
   if (year < 2000 || year > 2100) throw bad(field, 'is out of range')
@@ -180,7 +204,7 @@ function optionInput(body, category, { partial = false } = {}) {
 }
 
 module.exports = {
-  HttpError, bad, CATEGORIES, STATUSES, DETAIL_FIELDS,
+  HttpError, bad, LIMITS, CATEGORIES, STATUSES, DETAIL_FIELDS,
   id, text, oneOf, bool, httpUrl, number, currency, isoDate, time, deadline, details,
   decisionInput, optionInput,
 }

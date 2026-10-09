@@ -41,7 +41,8 @@ async function getMarkers(tripId, ctx) {
   if (!trip) return []
   const locale = await localeOf(ctx, tripId)
   const rates = await store.ratesFor(ctx, trip.currency)
-  const decisions = await store.loadDecisions(ctx.db, tripId, { currency: trip.currency || null, rates })
+  const voters = store.votersOf(await store.loadRoster(ctx, { ...trip, id: tripId }))
+  const decisions = await store.loadDecisions(ctx.db, tripId, { currency: trip.currency || null, rates, voters })
   const markers = []
   for (const d of decisions) {
     if (d.status !== 'offen') continue
