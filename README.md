@@ -96,6 +96,26 @@ Bookings need `reservation_edit` (and `place_edit` for the map place of a stay) 
 
 No outbound network access is requested: the plugin never fetches booking pages.
 
+## Who can do what
+
+The plugin's own database is not membership-checked by TREK, so the plugin enforces access itself:
+
+- **Every route** first proves that the signed-in user can open the trip (`ctx.trips.getById`,
+  which TREK membership-checks); anyone else gets a 403. Every decision, option or pro/con id in a
+  request must belong to that trip (and an option to that decision), otherwise it reads as 404.
+- **All trip members are equal** inside the tab, as in TREK's own Collab polls: everyone can create,
+  edit, archive and delete decisions and options, decide and reopen. Only the author can delete a
+  pro/con point. Writes into TREK itself (booking, place, cost, poll, notification) run with the
+  clicking user's TREK rights (`reservation_edit`, `place_edit`, `budget_edit`, `collab_edit`), so a
+  member without them can mark a decision as decided but cannot create the booking.
+- **Votes** are always cast as the signed-in user (per member and option either one upvote or one
+  veto). Only current trip members' votes are counted. Votes imported from
+  a Collab poll are each voter's own poll vote.
+- **Limits:** 200 decisions per trip, 50 options per decision, 100 pros/cons per option; text fields
+  are length-capped, links must be `http(s)` without credentials.
+- The interface renders all user content as text (no `innerHTML`); links open through TREK's
+  `openExternal`, which only accepts `http(s)`.
+
 ## Good to know
 
 - **AI import with a local model:** TREK stops a plugin request after 30 seconds. A local model on a
