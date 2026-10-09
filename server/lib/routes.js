@@ -55,14 +55,19 @@ function body(req) {
 async function buildState(ctx, req, trip) {
   const tripId = trip.id
   const currency = trip.currency || null
-  const [rates, members, settings, polls, aiOk] = await Promise.all([
+  const [rates, roster, settings, polls, aiOk] = await Promise.all([
     store.ratesFor(ctx, currency),
-    store.roster(ctx, trip),
+    store.loadRoster(ctx, trip),
     store.getSettings(ctx.db, tripId),
     collab.pollSnapshot(ctx, tripId),
     aiAvailable(ctx, req.user.id),
   ])
-  const decisions = await store.loadDecisions(ctx.db, tripId, { currency, rates })
+  const members = roster.members
+  // Only current members' votes count. The acting user just passed the membership
+  // check, so they are always in, whatever the roster lookup returned.
+  const voters = store.votersOf(roster)
+  if (voters) voters.add(req.user.id)
+  const decisions = await store.loadDecisions(ctx.db, tripId, { currency, rates, voters })
   for (const d of decisions) {
     d.poll = d.linked_poll_id ? collab.pollInfo(polls.polls.get(Number(d.linked_poll_id))) : null
     delete d.poll_option_ids
@@ -118,6 +123,36 @@ function requireOpen(decision) {
   if (decision.status !== 'offen') throw new HttpError(409, 'not_open', 'decision is not open')
 }
 
+/** 409 once `sql` (a COUNT(*) AS n) reaches `max` — see LIMITS in validate.js. */
+async function requireBelow(ctx, max, what, sql, ...args) {
+  const rows = await ctx.db.query(sql, ...args)
+  if (rows.length && Number(rows[0].n) >= max) throw new HttpError(409, 'limit_reached', `at most ${max} ${what}`)
+}
+
+/**
+ * Runs `fn` for one decision at a time. /decide and /reopen read the decision, then
+ * make several TREK writes and only afterwards record the outcome; two of them racing
+ * (a double click, two members at once) would otherwise both see "no booking yet" and
+ * create the booking and cost twice. The plugin runs in a single host child process, so
+ * an in-process queue per decision is enough; every caller re-reads the decision once
+ * it holds the turn.
+ */
+const queues = new Map()
+async function serialized(key, fn) {
+  const prev = queues.get(key) || Promise.resolve()
+  let release
+  const turn = new Promise((resolve) => { release = resolve })
+  const tail = prev.then(() => turn)
+  queues.set(key, tail)
+  await prev
+  try {
+    return await fn()
+  } finally {
+    release()
+    if (queues.get(key) === tail) queues.delete(key)
+  }
+}
+
 // ---------------------------------------------------------------------------
 
 const routes = [
@@ -135,6 +170,8 @@ const routes = [
   // Decisions -----------------------------------------------------------------
   route('POST', '/decisions/create', async ({ ctx, req, tripId, b }) => {
     const d = v.decisionInput(b)
+    await requireBelow(ctx, v.LIMITS.decisionsPerTrip, 'decisions per trip',
+      'SELECT COUNT(*) AS n FROM decisions WHERE trip_id = ?', tripId)
     const rows = await ctx.db.query(
       `INSERT INTO decisions (trip_id, title, category, description, status, deadline, created_by, created_at)
        VALUES (?, ?, ?, ?, 'offen', ?, ?, ?) RETURNING id`,
@@ -147,6 +184,12 @@ const routes = [
     const decisionId = v.id(b.decisionId, 'decisionId')
     const cur = await store.getDecision(ctx.db, tripId, decisionId)
     const d = v.decisionInput(b, { partial: true })
+    // Options store category-specific details and a decided one already became a
+    // booking of that type, so the category is fixed once there is any option.
+    if (d.category !== undefined && d.category !== cur.category) {
+      const [{ n }] = await ctx.db.query('SELECT COUNT(*) AS n FROM options WHERE decision_id = ?', decisionId)
+      if (Number(n) > 0) throw new HttpError(409, 'category_locked', 'the category cannot change once there are options')
+    }
     const next = { ...cur, ...d }
     await ctx.db.exec(
       'UPDATE decisions SET title = ?, category = ?, description = ?, deadline = ? WHERE id = ? AND trip_id = ?',
@@ -184,6 +227,8 @@ const routes = [
     const decision = await store.getDecision(ctx.db, tripId, decisionId)
     requireOpen(decision)
     const o = v.optionInput(b, decision.category)
+    await requireBelow(ctx, v.LIMITS.optionsPerDecision, 'options per decision',
+      'SELECT COUNT(*) AS n FROM options WHERE decision_id = ?', decisionId)
     if (o.price_total !== null && !o.currency) o.currency = trip.currency || null
     const rows = await ctx.db.query(
       `INSERT INTO options (decision_id, trip_id, title, url, price_total, currency, price_note, details_json,
@@ -242,6 +287,8 @@ const routes = [
     await store.getOption(ctx.db, tripId, optionId)
     const kind = v.oneOf(b.kind, 'kind', ['pro', 'con'])
     const txt = v.text(b.text, 'text', { max: 280, required: true })
+    await requireBelow(ctx, v.LIMITS.pointsPerOption, 'pros/cons per option',
+      'SELECT COUNT(*) AS n FROM pros_cons WHERE option_id = ?', optionId)
     const rows = await ctx.db.query(
       'INSERT INTO pros_cons (option_id, kind, text, created_by, created_at) VALUES (?, ?, ?, ?, ?) RETURNING id',
       optionId, kind, txt, req.user.id, store.now(),
@@ -342,93 +389,96 @@ const routes = [
   // Decide / reopen -----------------------------------------------------------
   route('POST', '/decide', async ({ ctx, req, trip, tripId, b }) => {
     const decisionId = v.id(b.decisionId, 'decisionId')
-    const optionId = v.id(b.optionId, 'optionId')
-    const locale = lang(b.locale)
-    const decision = await store.getDecision(ctx.db, tripId, decisionId)
-    if (decision.status === 'verworfen') throw new HttpError(409, 'discarded', 'decision is discarded')
-    const opt = await store.getOption(ctx.db, tripId, optionId)
-    if (opt.decision_id !== decisionId) throw new HttpError(404, 'not_found', 'option not found')
-    if (decision.status === 'entschieden' && decision.winner_option_id !== optionId) {
-      throw new HttpError(409, 'decided', 'reopen the decision to pick another option')
-    }
-    const option = { ...opt, details: store.parseDetails(opt.details_json) }
-    const results = { booking: null, cost: null, archived: null, notified: null }
-
-    // 1. Booking (skipped when one is already linked — re-running fills gaps only).
-    let reservationId = decision.linked_reservation_id || null
-    if (v.bool(b.booking) && !reservationId) {
-      try {
-        results.booking = await booking.createBooking(ctx, trip, decision, option, locale)
-        reservationId = results.booking.id || null
-      } catch (e) {
-        results.booking = booking.classify(e)
+    return serialized(`decision:${tripId}:${decisionId}`, async () => {
+      const optionId = v.id(b.optionId, 'optionId')
+      const locale = lang(b.locale)
+      const decision = await store.getDecision(ctx.db, tripId, decisionId)
+      if (decision.status === 'verworfen') throw new HttpError(409, 'discarded', 'decision is discarded')
+      const opt = await store.getOption(ctx.db, tripId, optionId)
+      if (opt.decision_id !== decisionId) throw new HttpError(404, 'not_found', 'option not found')
+      if (decision.status === 'entschieden' && decision.winner_option_id !== optionId) {
+        throw new HttpError(409, 'decided', 'reopen the decision to pick another option')
       }
-    }
+      const option = { ...opt, details: store.parseDetails(opt.details_json) }
+      const results = { booking: null, cost: null, archived: null, notified: null }
 
-    // 2. Cost, linked to the booking when there is one.
-    let costId = decision.linked_cost_id || null
-    if (v.bool(b.cost) && !costId) {
-      if (option.price_total === null || !(option.price_total > 0)) {
-        results.cost = { ok: false, reason: 'no_price' }
-      } else {
+      // 1. Booking (skipped when one is already linked — re-running fills gaps only).
+      let reservationId = decision.linked_reservation_id || null
+      if (v.bool(b.booking) && !reservationId) {
         try {
-          // Equal split across the chosen members (default: everyone on the trip).
-          const roster = (await store.roster(ctx, trip)).map((m) => m.id)
-          let split = roster
-          if (b.splitMemberIds !== undefined && b.splitMemberIds !== null) {
-            if (!Array.isArray(b.splitMemberIds) || b.splitMemberIds.length > 200) throw v.bad('splitMemberIds', 'must be a list')
-            const want = new Set(b.splitMemberIds.map((x) => v.id(x, 'splitMemberIds')))
-            split = roster.filter((id) => want.has(id))
-          }
-          results.cost = await booking.createCost(ctx, trip, decision, option, reservationId, split)
-          costId = results.cost.id || null
+          results.booking = await booking.createBooking(ctx, trip, decision, option, locale)
+          reservationId = results.booking.id || null
         } catch (e) {
-          results.cost = booking.classify(e)
-          if (results.cost.reason === 'addon_disabled') await store.upsertSettings(ctx.db, tripId, { costs_unavailable: 1 })
+          results.booking = booking.classify(e)
         }
       }
-    }
 
-    // 3. Mark as decided (also when a TREK write was refused — the group decided).
-    const first = decision.status !== 'entschieden'
-    await ctx.db.exec(
-      `UPDATE decisions SET status = 'entschieden', winner_option_id = ?, decided_by = ?, decided_at = ?,
-                            linked_reservation_id = ?, linked_cost_id = ?
-        WHERE id = ? AND trip_id = ?`,
-      optionId, first ? req.user.id : decision.decided_by, first ? store.now() : decision.decided_at,
-      reservationId, costId, decisionId, tripId,
-    )
-    await ctx.db.exec('UPDATE options SET archived = 0 WHERE id = ?', optionId)
-
-    // 4. Archive the rest.
-    if (v.bool(b.archiveOthers)) {
-      const r = await ctx.db.exec(
-        'UPDATE options SET archived = 2 WHERE decision_id = ? AND id != ? AND archived = 0', decisionId, optionId,
-      )
-      results.archived = { ok: true, count: r.changes }
-    }
-
-    // 5. Tell the group.
-    if (v.bool(b.notify)) {
-      try {
-        const price = booking.formatPrice(option.price_total, option.currency, locale)
-        await ctx.notify.send({
-          title: t(locale, 'notify.title', { decision: decision.title }).slice(0, 200),
-          body: t(locale, 'notify.body', {
-            option: option.title,
-            price: price ? ` · ${price}` : '',
-            user: req.user.username || t(locale, 'someone'),
-          }).slice(0, 1000),
-          scope: 'trip',
-          targetId: tripId,
-          link: `/trips/${tripId}`,
-        })
-        results.notified = { ok: true }
-      } catch (e) {
-        results.notified = booking.classify(e)
+      // 2. Cost, linked to the booking when there is one.
+      let costId = decision.linked_cost_id || null
+      if (v.bool(b.cost) && !costId) {
+        if (option.price_total === null || !(option.price_total > 0)) {
+          results.cost = { ok: false, reason: 'no_price' }
+        } else {
+          try {
+            // Equal split across the chosen members (default: everyone on the trip).
+            const roster = (await store.roster(ctx, trip)).map((m) => m.id)
+            let split = roster
+            if (b.splitMemberIds !== undefined && b.splitMemberIds !== null) {
+              if (!Array.isArray(b.splitMemberIds) || b.splitMemberIds.length > 200) throw v.bad('splitMemberIds', 'must be a list')
+              const want = new Set(b.splitMemberIds.map((x) => v.id(x, 'splitMemberIds')))
+              split = roster.filter((id) => want.has(id))
+            }
+            results.cost = await booking.createCost(ctx, trip, decision, option, reservationId, split)
+            costId = results.cost.id || null
+          } catch (e) {
+            results.cost = booking.classify(e)
+            if (results.cost.reason === 'addon_disabled') await store.upsertSettings(ctx.db, tripId, { costs_unavailable: 1 })
+          }
+        }
       }
-    }
-    return { results }
+
+      // 3. Mark as decided (also when a TREK write was refused — the group decided).
+      const first = decision.status !== 'entschieden'
+      await ctx.db.exec(
+        `UPDATE decisions SET status = 'entschieden', winner_option_id = ?, decided_by = ?, decided_at = ?,
+                              linked_reservation_id = ?, linked_cost_id = ?
+          WHERE id = ? AND trip_id = ?`,
+        optionId, first ? req.user.id : decision.decided_by, first ? store.now() : decision.decided_at,
+        reservationId, costId, decisionId, tripId,
+      )
+      await ctx.db.exec('UPDATE options SET archived = 0 WHERE id = ?', optionId)
+
+      // 4. Archive the rest.
+      if (v.bool(b.archiveOthers)) {
+        const r = await ctx.db.exec(
+          'UPDATE options SET archived = 2 WHERE decision_id = ? AND id != ? AND archived = 0', decisionId, optionId,
+        )
+        results.archived = { ok: true, count: r.changes }
+      }
+
+      // 5. Tell the group — once, when the decision is made. A re-run only fills gaps
+      // (and a duplicate request queued behind the first must not notify twice).
+      if (v.bool(b.notify) && first) {
+        try {
+          const price = booking.formatPrice(option.price_total, option.currency, locale)
+          await ctx.notify.send({
+            title: t(locale, 'notify.title', { decision: decision.title }).slice(0, 200),
+            body: t(locale, 'notify.body', {
+              option: option.title,
+              price: price ? ` · ${price}` : '',
+              user: req.user.username || t(locale, 'someone'),
+            }).slice(0, 1000),
+            scope: 'trip',
+            targetId: tripId,
+            link: `/trips/${tripId}`,
+          })
+          results.notified = { ok: true }
+        } catch (e) {
+          results.notified = booking.classify(e)
+        }
+      }
+      return { results }
+    })
   }),
 
   /**
@@ -442,41 +492,43 @@ const routes = [
    */
   route('POST', '/reopen', async ({ ctx, tripId, b }) => {
     const decisionId = v.id(b.decisionId, 'decisionId')
-    const d = await store.getDecision(ctx.db, tripId, decisionId)
-    if (d.status !== 'entschieden') throw new HttpError(409, 'not_decided', 'decision is not decided')
-    const results = { booking: null, cost: null, reopened: false }
-    const gone = (r) => r.reason === 'forbidden' && /\bno (reservation|cost)\b/i.test(r.message || '')
-    if (d.linked_reservation_id && v.bool(b.deleteBooking)) {
-      try {
-        // A cost created against the booking goes with it (TREK cascades the link).
-        await ctx.reservations.delete(tripId, d.linked_reservation_id)
-        results.booking = { ok: true }
-      } catch (e) {
-        results.booking = booking.classify(e)
-        if (!gone(results.booking)) return { results }
+    return serialized(`decision:${tripId}:${decisionId}`, async () => {
+      const d = await store.getDecision(ctx.db, tripId, decisionId)
+      if (d.status !== 'entschieden') throw new HttpError(409, 'not_decided', 'decision is not decided')
+      const results = { booking: null, cost: null, reopened: false }
+      const gone = (r) => r.reason === 'forbidden' && /\bno (reservation|cost)\b/i.test(r.message || '')
+      if (d.linked_reservation_id && v.bool(b.deleteBooking)) {
+        try {
+          // A cost created against the booking goes with it (TREK cascades the link).
+          await ctx.reservations.delete(tripId, d.linked_reservation_id)
+          results.booking = { ok: true }
+        } catch (e) {
+          results.booking = booking.classify(e)
+          if (!gone(results.booking)) return { results }
+        }
       }
-    }
-    const costGoneWithBooking = results.booking && results.booking.ok
-    if (d.linked_cost_id && v.bool(b.deleteCost) && !costGoneWithBooking) {
-      try {
-        await ctx.costs.delete(tripId, d.linked_cost_id)
-        results.cost = { ok: true }
-      } catch (e) {
-        results.cost = booking.classify(e)
-        if (!gone(results.cost)) return { results }
+      const costGoneWithBooking = results.booking && results.booking.ok
+      if (d.linked_cost_id && v.bool(b.deleteCost) && !costGoneWithBooking) {
+        try {
+          await ctx.costs.delete(tripId, d.linked_cost_id)
+          results.cost = { ok: true }
+        } catch (e) {
+          results.cost = booking.classify(e)
+          if (!gone(results.cost)) return { results }
+        }
       }
-    }
-    results.reopened = true
-    await ctx.db.tx([
-      {
-        sql: `UPDATE decisions SET status = 'offen', winner_option_id = NULL, decided_by = NULL, decided_at = NULL,
-                                   linked_reservation_id = NULL, linked_cost_id = NULL
-               WHERE id = ? AND trip_id = ?`,
-        args: [decisionId, tripId],
-      },
-      { sql: 'UPDATE options SET archived = 0 WHERE decision_id = ? AND archived = 2', args: [decisionId] },
-    ])
-    return { results }
+      results.reopened = true
+      await ctx.db.tx([
+        {
+          sql: `UPDATE decisions SET status = 'offen', winner_option_id = NULL, decided_by = NULL, decided_at = NULL,
+                                     linked_reservation_id = NULL, linked_cost_id = NULL
+                 WHERE id = ? AND trip_id = ?`,
+          args: [decisionId, tripId],
+        },
+        { sql: 'UPDATE options SET archived = 0 WHERE decision_id = ? AND archived = 2', args: [decisionId] },
+      ])
+      return { results }
+    })
   }),
 ]
 

@@ -83,8 +83,12 @@ function rankOptions(options, convert = (o) => o.price_total) {
  * Every decision of a trip with its options, pros/cons and votes, ranked.
  * With `currency` + `rates` (relative to it) each option also carries `price_trip`,
  * its total in the trip currency — used for the display and the price tie-break.
+ *
+ * `voters` (a Set of user ids, optional) limits the counted votes to the people who are
+ * on the trip right now: someone who left or was removed keeps no say in the ranking.
+ * Their rows stay, so the votes count again if they rejoin.
  */
-async function loadDecisions(db, tripId, { currency = null, rates = null } = {}) {
+async function loadDecisions(db, tripId, { currency = null, rates = null, voters = null } = {}) {
   const decisions = await db.query('SELECT * FROM decisions WHERE trip_id = ? ORDER BY created_at DESC, id DESC', tripId)
   const options = await db.query(
     'SELECT o.* FROM options o JOIN decisions d ON d.id = o.decision_id WHERE d.trip_id = ? ORDER BY o.id',
@@ -130,6 +134,7 @@ async function loadDecisions(db, tripId, { currency = null, rates = null } = {})
     if (o) (p.kind === 'pro' ? o.pros : o.cons).push({ id: p.id, text: p.text, created_by: p.created_by, created_at: p.created_at })
   }
   for (const v of votes) {
+    if (voters && !voters.has(v.user_id)) continue
     const o = byOption.get(v.option_id)
     if (o) (v.value === 'up' ? o.up : o.veto).push(v.user_id)
   }
@@ -196,11 +201,21 @@ function convert(amount, from, to, rates) {
 
 /** Trip roster: the invited members plus the owner (who is not in trip_members). */
 async function roster(ctx, trip) {
+  return (await loadRoster(ctx, trip)).members
+}
+
+/**
+ * The roster plus whether the member lookup succeeded. Only a `complete` roster may be
+ * used to drop votes (see votersOf): a failed lookup must not silently erase the tally.
+ */
+async function loadRoster(ctx, trip) {
   const tripId = trip.id
   let members = []
+  let complete = true
   try {
     members = await ctx.trips.members(tripId)
   } catch (e) {
+    complete = false
     ctx.log.warn('members lookup failed', { error: String(e && e.message) })
   }
   const list = new Map()
@@ -219,7 +234,12 @@ async function roster(ctx, trip) {
   } else if (list.has(ownerId)) {
     list.get(ownerId).owner = true
   }
-  return [...list.values()]
+  return { members: [...list.values()], complete: complete && Array.isArray(members) }
+}
+
+/** The ids whose votes count, or null (count every vote) when the roster is unknown. */
+function votersOf({ members, complete }) {
+  return complete ? new Set(members.map((m) => m.id)) : null
 }
 
 function displayName(u) {
@@ -229,6 +249,6 @@ function displayName(u) {
 
 module.exports = {
   now, requireTrip, getDecision, getOption, votingClosed, parseDetails, rankOptions, loadDecisions,
-  getSettings, upsertSettings, roster, displayName, ratesFor, convert,
+  getSettings, upsertSettings, roster, loadRoster, votersOf, displayName, ratesFor, convert,
   _resetRateCache: () => rateCache.clear(),
 }

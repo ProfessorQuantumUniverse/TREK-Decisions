@@ -64,6 +64,9 @@ for (const sc of scenarios) {
       c.locale = locale
       c.formats = Object.assign({}, c.formats, { locale })
       c.viewport = { surface: 'trip-tab', formFactor: phone ? 'phone' : 'desktop', fill: false, insets: { top: 0, bottom: 0 } }
+      // '*' is the only target that reaches the frame: it is sandboxed without
+      // allow-same-origin, so its origin is opaque and cannot be named. Dev tooling
+      // only; the context carries no secrets.
       f.contentWindow.postMessage(c, '*')
     }
     window.__push = push
