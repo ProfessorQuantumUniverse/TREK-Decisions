@@ -42,7 +42,7 @@ generated locally with `npm run shots` while the dev server runs (see *Developme
 
 ## Setup
 
-**Install** (TREK 4.3 or newer, admin account):
+**Install** (TREK 4.3 or newer, including TREK 5; admin account):
 
 1. Download `plugin.zip` from the latest [release](../../releases) of this repository.
 2. In TREK open **Admin → Plugins**, drag the zip onto the upload area (or click *Upload*).

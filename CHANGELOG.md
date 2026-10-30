@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.2
+- Runs on TREK 5: the supported range is now `>=4.3.0 <6.0.0` (TREK 5.0 had switched the plugin off as incompatible).
+- Includes the 0.4.1 hardening below (the `v0.4.1` release asset was built without it).
+
 ## 0.4.1
 Hardening release after a security and robustness review. No new features, no schema change.
 - Votes count only while the voter is on the trip: someone who left or was removed no longer
